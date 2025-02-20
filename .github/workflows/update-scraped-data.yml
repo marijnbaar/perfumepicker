@@ -32,3 +32,5 @@ jobs:
         with:
           message: "Update scrapedData.json [skip ci]"
           add: "scrapedData.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
