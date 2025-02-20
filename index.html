@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Perfume Recommendation App</title>
-  <!-- Tailwind CSS for styling -->
+  <title>Perfume Recommendation App met Scraped Data</title>
+  <!-- Tailwind CSS voor styling -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Animate.css for animations -->
+  <!-- Animate.css voor animaties -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <!-- React and ReactDOM -->
+  <!-- React en ReactDOM -->
   <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-  <!-- Babel Standalone for in-browser JSX transformation -->
+  <!-- Babel Standalone voor in-browser JSX-transformatie -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
-  <!-- Our React code is inlined and will be transpiled by Babel -->
+  <!-- Onze React-code in een Babel-script -->
   <script type="text/babel">
     /**************************************************
-     * Minimal Dummy Implementations for UI Components
+     * Dummy implementaties voor UI-componenten
      **************************************************/
-    // Tabs components
+    // Tabs-componenten
     const Tabs = ({ defaultValue, children }) => {
       const [activeTab, setActiveTab] = React.useState(defaultValue);
       return (
@@ -66,19 +66,19 @@
     const TabsContent = ({ value, children }) => <div>{children}</div>;
     TabsContent.displayName = "TabsContent";
     
-    // Card components
+    // Card-componenten
     const Card = ({ children, className = "" }) => <div className={`${className} border rounded shadow-sm`}>{children}</div>;
     const CardContent = ({ children, className = "" }) => <div className={className}>{children}</div>;
     const CardHeader = ({ children, className = "" }) => <div className={className}>{children}</div>;
     const CardTitle = ({ children, className = "" }) => <h2 className={className}>{children}</h2>;
     
-    // Input, Button, Alert components
+    // Input, Button, Alert-componenten
     const Input = (props) => <input {...props} className={`border p-2 rounded ${props.className || ""}`} />;
     const Button = (props) => <button {...props} className={`px-4 py-2 rounded ${props.className || ""}`}>{props.children}</button>;
     const Alert = ({ children, className = "" }) => <div className={`border p-4 rounded ${className}`}>{children}</div>;
     const AlertDescription = ({ children, className = "" }) => <p className={className}>{children}</p>;
     
-    // Dummy icon components
+    // Dummy icoon-componenten
     const Search = (props) => <span {...props}>🔍</span>;
     const Heart = (props) => <span {...props}>❤️</span>;
     const Bookmark = (props) => <span {...props}>🔖</span>;
@@ -86,9 +86,10 @@
     const Upload = (props) => <span {...props}>⤴️</span>;
     
     /**************************************************
-     * Your React Code (Transformed to Work in a Static HTML)
+     * React Code: PerfumeRecommendationApp met Scraped Data
      **************************************************/
-    // PerfumeCard: Displays a perfume with its notes and an action button.
+    
+    // PerfumeCard: Weergeeft een parfum met noten en een actieknop.
     const PerfumeCard = ({ perfume, onAction, actionType = "add" }) => {
       const categorizeNotes = (notesString) => {
         const categories = {
@@ -111,9 +112,9 @@
         };
       };
     
-      const notes = categorizeNotes(perfume.notes);
+      const notes = categorizeNotes(perfume.notes || '');
     
-      // NoteSection: Renders a section of notes with an icon and color.
+      // NoteSection: Render een sectie met noten met een icoon en kleur.
       const NoteSection = ({ title, notes, color }) => (
         notes.length > 0 && (
           <div className="mb-2">
@@ -141,7 +142,7 @@
             <div className="flex">
               <div className="w-32 h-40 flex-shrink-0">
                 <img 
-                  src="https://via.placeholder.com/128x160" 
+                  src={perfume.imageUrl || "https://via.placeholder.com/128x160"} 
                   alt={perfume.name}
                   className="w-full h-full object-cover"
                 />
@@ -173,7 +174,7 @@
       );
     };
     
-    // Main Component: Perfume Recommendation Application
+    // Hoofdcomponent: PerfumeRecommendationApp
     const PerfumeRecommendationApp = () => {
       const [searchQuery, setSearchQuery] = React.useState('');
       const [uploadedImage, setUploadedImage] = React.useState(null);
@@ -181,7 +182,18 @@
       const [shelf, setShelf] = React.useState([]);
       const [isSearching, setIsSearching] = React.useState(false);
     
-      // Handle image upload and convert to base64.
+      // Nieuwe state voor gescrapete data
+      const [scrapedData, setScrapedData] = React.useState([]);
+    
+      // Data laden uit scrapedData.json (uit de public folder)
+      React.useEffect(() => {
+        fetch('/scrapedData.json')
+          .then(response => response.json())
+          .then(data => setScrapedData(data))
+          .catch(error => console.error('Fout bij laden scraped data:', error));
+      }, []);
+    
+      // Afbeeldingsupload afhandelen en converteren naar base64
       const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -191,7 +203,7 @@
         }
       };
     
-      // Simulate search (in a real app, you'd call your API endpoint).
+      // Simuleer reguliere zoekopdracht
       const performSearch = async () => {
         setIsSearching(true);
         setTimeout(() => {
@@ -200,33 +212,36 @@
               id: 1,
               name: 'Chanel No. 5',
               description: 'Een tijdloze bloemen-aldehyde geur, de essentie van verfijning.',
-              notes: 'aldehydes, jasmijn, roos, ylang-ylang, iris, vanille, sandelhout'
+              notes: 'aldehydes, jasmijn, roos, ylang-ylang, iris, vanille, sandelhout',
+              imageUrl: "https://via.placeholder.com/128x160"
             },
             {
               id: 2,
               name: 'Dior Sauvage',
               description: 'Fris en gedurfd, een kenmerkende geur die een onmiskenbaar spoor achterlaat.',
-              notes: 'bergamot, peper, lavendel, amber, vanille'
+              notes: 'bergamot, peper, lavendel, amber, vanille',
+              imageUrl: "https://via.placeholder.com/128x160"
             },
             {
               id: 3,
               name: 'Le Labo Santal 33',
               description: 'Een unisex geur die de geest van het Amerikaanse Westen vangt.',
-              notes: 'kardemom, iris, violet, sandelhout, musk, amber'
+              notes: 'kardemom, iris, violet, sandelhout, musk, amber',
+              imageUrl: "https://via.placeholder.com/128x160"
             }
           ]);
           setIsSearching(false);
         }, 1000);
       };
     
-      // Add a perfume to the "shelf"
+      // Voeg een parfum toe aan de shelf
       const addToShelf = (perfume) => {
         if (!shelf.find(p => p.id === perfume.id)) {
           setShelf([...shelf, perfume]);
         }
       };
     
-      // Remove a perfume from the "shelf"
+      // Verwijder een parfum uit de shelf
       const removeFromShelf = (perfume) => {
         setShelf(shelf.filter(p => p.id !== perfume.id));
       };
@@ -247,6 +262,9 @@
               <TabsTrigger value="shelf" className="text-lg font-light">
                 <Bookmark className="w-4 h-4 mr-2" />
                 Mijn Shelf
+              </TabsTrigger>
+              <TabsTrigger value="scraped" className="text-lg font-light">
+                Scraped Data
               </TabsTrigger>
             </TabsList>
     
@@ -328,12 +346,43 @@
                 </CardContent>
               </Card>
             </TabsContent>
+    
+            <TabsContent value="scraped">
+              <Card className="bg-white/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-teal-800 font-light">
+                    Gescrapete Data (Fragrantia)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {scrapedData.length === 0 ? (
+                    <Alert className="bg-teal-50">
+                      <AlertDescription className="font-light">
+                        Geen gescrapete data gevonden.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <div className="space-y-4">
+                      {scrapedData.map((perfume, index) => (
+                        <PerfumeCard
+                          key={index}
+                          perfume={perfume}
+                          onAction={addToShelf}
+                          actionType="add"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+    
           </Tabs>
         </div>
       );
     };
     
-    // Render the application
+    // Render de applicatie
     ReactDOM.render(<PerfumeRecommendationApp />, document.getElementById('root'));
   </script>
 </body>
