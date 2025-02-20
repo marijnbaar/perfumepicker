@@ -28,9 +28,9 @@ jobs:
 
       # Deze stap commit en pusht het gewijzigde scrapedData.json-bestand, indien er veranderingen zijn.
       - name: Commit and Push changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: "Update scrapedData.json [skip ci]"
-          add: "scrapedData.json"
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add scrapedData.json
+          git commit -m "Update scrapedData.json [skip ci]" || exit 0
+          git push https://x-access-token:${{ secrets.REPO_TOKEN }}@github.com/marijnbaar/perfumepicker.git main
