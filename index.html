@@ -27,24 +27,24 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
-      // Import icons from Lucide
+      // Import Lucide icons from global variable.
       const { Heart, Sun, Moon } = window.lucide;
 
-      // ThemeToggle: toggles between dark and light mode.
+      // ThemeToggle Component
       const ThemeToggle = ({ isDark, onToggle }) => (
         <button
           onClick={onToggle}
           className="fixed top-4 right-4 p-2 rounded-full transition-colors duration-200"
         >
           {isDark ? (
-            <Sun size={24} className="text-yellow-400" />
+            <Sun className="w-6 h-6 text-yellow-400" />
           ) : (
-            <Moon size={24} className="text-gray-600" />
+            <Moon className="w-6 h-6 text-gray-600" />
           )}
         </button>
       );
 
-      // PerfumeCard: displays individual perfume data.
+      // PerfumeCard Component
       const PerfumeCard = ({ perfume, onAction, actionType = "add", isDark }) => {
         // Parse notes: assume notes is an object with keys: top, middle, base.
         const parseNotes = (notesObj) => {
@@ -52,7 +52,7 @@
           if (typeof notesObj === "object" && (notesObj.top || notesObj.middle || notesObj.base)) {
             return notesObj;
           }
-          // If notes is a string, split on commas.
+          // If notes is a string, split by commas.
           const notesArray = notesObj.toLowerCase().split(",").map(n => n.trim());
           return { top: notesArray, middle: [], base: [] };
         };
@@ -100,7 +100,7 @@
         );
       };
 
-      // Main App component
+      // Main App Component
       const App = () => {
         const [activeTab, setActiveTab] = React.useState("home");
         const [favorites, setFavorites] = React.useState([]);
@@ -108,18 +108,26 @@
         const [perfumes, setPerfumes] = React.useState([]);
         const [isDark, setIsDark] = React.useState(false);
 
-        // Update background based on theme.
+        // Update body background based on theme.
         React.useEffect(() => {
           document.body.className = isDark 
-            ? "bg-gray-900 min-h-screen" 
+            ? "bg-gray-900 min-h-screen"
             : "bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen";
         }, [isDark]);
 
         // Load scraped data from scrapedData.json.
         React.useEffect(() => {
-          fetch("./scrapedData.json")
-            .then(res => res.json())
-            .then(data => setPerfumes(data))
+          fetch("scrapedData.json")
+            .then(res => {
+              if (!res.ok) {
+                throw new Error("Network response was not ok " + res.status);
+              }
+              return res.json();
+            })
+            .then(data => {
+              console.log("Loaded perfume data:", data);
+              setPerfumes(data);
+            })
             .catch(err => {
               console.error("Error loading perfume data:", err);
               setPerfumes([]);
@@ -129,9 +137,11 @@
         // Filter perfumes by search query.
         const filteredPerfumes = React.useMemo(() => {
           return perfumes.filter(perfume => {
-            const matchesSearch = perfume.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                  (perfume.brand && perfume.brand.toLowerCase().includes(searchQuery.toLowerCase()));
-            return matchesSearch;
+            const query = searchQuery.toLowerCase();
+            return (
+              perfume.name.toLowerCase().includes(query) ||
+              (perfume.brand && perfume.brand.toLowerCase().includes(query))
+            );
           });
         }, [perfumes, searchQuery]);
 
@@ -169,7 +179,9 @@
                     className={`px-6 py-3 rounded-full transition-all duration-300 ${
                       activeTab === tab 
                         ? "bg-purple-600 text-white" 
-                        : isDark ? "bg-gray-800 text-gray-200 hover:bg-gray-700" : "bg-white text-purple-600 hover:bg-purple-50"
+                        : isDark 
+                          ? "bg-gray-800 text-gray-200 hover:bg-gray-700" 
+                          : "bg-white text-purple-600 hover:bg-purple-50"
                     }`}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -179,14 +191,18 @@
             </nav>
 
             {activeTab === "home" && (
-              <div>
+              <div className="animate__animated animate__fadeIn">
                 <div className="mb-6">
                   <input
                     type="text"
                     placeholder="Search by name or brand..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full p-3 rounded-lg border focus:ring focus:outline-none"
+                    className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-purple-300 outline-none ${
+                      isDark 
+                        ? "bg-gray-700 text-gray-200 border-gray-600" 
+                        : "bg-white text-gray-800 border-gray-300"
+                    }`}
                   />
                 </div>
                 {filteredPerfumes.length === 0 ? (
@@ -197,6 +213,7 @@
                       key={index}
                       perfume={perfume}
                       onAction={toggleFavorite}
+                      actionType={favorites.some(p => p.name === perfume.name) ? "remove" : "add"}
                       isDark={isDark}
                     />
                   ))
@@ -205,9 +222,11 @@
             )}
 
             {activeTab === "favorites" && (
-              <div>
+              <div className="animate__animated animate__fadeIn">
                 {favorites.length === 0 ? (
-                  <p className={isDark ? "text-gray-200" : "text-gray-800"}>Your favorites shelf is empty.</p>
+                  <div className="text-center p-8 rounded-lg bg-white text-gray-600">
+                    <p>Your favorites list is empty.</p>
+                  </div>
                 ) : (
                   favorites.map((perfume, index) => (
                     <PerfumeCard
