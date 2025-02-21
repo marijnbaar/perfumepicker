@@ -7,6 +7,24 @@ const fs = require('fs');
 const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
+// Helper: scroll the page slowly to trigger lazy-loading
+async function scrollPage(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+        if (totalHeight >= document.body.scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 200);
+    });
+  });
+}
+
 // Get all designer URLs from the designers index page.
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
@@ -28,21 +46,14 @@ async function getDesignerUrls(page) {
   return designerUrls;
 }
 
-// Get the designer slug (e.g., "Acqua-di-Parma") from the designer URL.
-function extractDesignerSlug(designerUrl) {
-  const parts = designerUrl.split('/');
-  const lastPart = parts[parts.length - 1];
-  return lastPart.replace('.html', '');
-}
-
-// Extract perfume links from a designer page using a flexible approach.
+// Extract perfume links from a designer page using fallback selectors.
 function getPerfumeLinks($, designerUrl) {
   let links = [];
-  // Primary approach: all anchors within elements with class "prefumeHbox"
+  // Primary approach: use a known container from your screenshot.
   $('.prefumeHbox h3 a').each((_, el) => {
     links.push($(el).attr('href'));
   });
-  // Fallback: scan all <a> tags for '/perfume/' substring.
+  // Fallback: any <a> tag that has "/perfume/" in href.
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
       links.push($(el).attr('href'));
@@ -50,20 +61,20 @@ function getPerfumeLinks($, designerUrl) {
   }
   // Convert relative URLs to absolute URLs.
   links = links.map(link => link.startsWith('http') ? link : new URL(link, designerUrl).href);
-  // Optional: Filter links by designer slug if needed.
-  const slug = extractDesignerSlug(designerUrl);
-  links = links.filter(link => link.includes(slug));
-  return Array.from(new Set(links)); // Remove duplicates.
+  return Array.from(new Set(links));
 }
 
-// Get perfume links from a single designer page with error handling.
+// Get perfume links from a single designer page.
 async function getPerfumeLinksFromDesigner(page, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
   try {
     await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+    // Allow extra time for lazy-loading.
+    await page.waitForTimeout(2000);
+    await scrollPage(page);
   } catch (err) {
     console.error(`Error navigating to ${designerUrl}:`, err.toString());
-    return []; // Skip this designer page.
+    return [];
   }
   const html = await page.content();
   const $ = cheerio.load(html);
@@ -77,6 +88,9 @@ async function scrapePerfumePage(page, perfumeUrl) {
   try {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
     await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+    // Wait for a key element to ensure the page has loaded.
+    await page.waitForSelector('h1', { timeout: 15000 });
+    await scrollPage(page);
     const html = await page.content();
     const $ = cheerio.load(html);
 
@@ -118,7 +132,7 @@ async function scrapePerfumePage(page, perfumeUrl) {
   }
 }
 
-// Main function to orchestrate the full scraping process.
+// Main function orchestrating the scraping across all designer pages.
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
@@ -127,11 +141,11 @@ async function main() {
   const page = await browser.newPage();
   await page.setUserAgent(USER_AGENT);
 
-  // 1. Get all designer URLs from the main designers index page.
+  // 1. Get all designer URLs.
   const designerUrls = await getDesignerUrls(page);
   let allPerfumeLinks = [];
 
-  // 2. For each designer, get perfume links (skip ones that time out).
+  // 2. For each designer, get perfume links.
   for (const designerUrl of designerUrls) {
     const links = await getPerfumeLinksFromDesigner(page, designerUrl);
     allPerfumeLinks = allPerfumeLinks.concat(links);
