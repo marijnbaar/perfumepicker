@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const pLimit = (await import('p-limit')).default;
 puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
@@ -93,7 +92,6 @@ async function getPerfumeLinksFromDesigner(browser, designerUrl) {
   try {
     page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
-    // Increase default timeouts.
     page.setDefaultNavigationTimeout(120000);
     page.setDefaultTimeout(120000);
     await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 120000 });
@@ -122,7 +120,6 @@ async function scrapePerfumePage(browser, perfumeUrl) {
     page.setDefaultNavigationTimeout(120000);
     page.setDefaultTimeout(120000);
     await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 120000 });
-    // Wait for key element
     await page.waitForSelector('h1', { timeout: 15000 });
     await delay(2000);
     await scrollPage(page);
@@ -171,9 +168,11 @@ async function scrapePerfumePage(browser, perfumeUrl) {
 
 // Main function orchestrating the full scraping process.
 async function main() {
+  // Dynamically import p-limit inside main.
+  const { default: pLimit } = await import('p-limit');
+  
   const browser = await puppeteer.launch({
     headless: true,
-    // Increase protocolTimeout if needed by adding a higher timeout in launch options:
     protocolTimeout: 120000,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
