@@ -2,40 +2,63 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
-// Vervang de URL door de Fragrantia-URL of de specifieke pagina die je wilt scrapen
-const FRAGRANTIA_URL = 'https://www.fragrantia.com/';
+// Target a specific perfume page
+const FRAGRANTICA_URL = 'https://www.fragrantica.com/perfume/Lattafa-Perfumes/Khamrah-75805.html';
 
-async function scrapeFragrantia() {
+async function scrapeFragrantica() {
   try {
-    // Haal de HTML-inhoud van de website op
-    const response = await axios.get(FRAGRANTIA_URL);
-    const html = response.data;
-    
-    // Laad de HTML in cheerio om de DOM te manipuleren
+    // Fetch the page HTML
+    const { data: html } = await axios.get(FRAGRANTICA_URL);
     const $ = cheerio.load(html);
-    
-    // Initialiseer een array om de gescrapete data op te slaan
-    let perfumes = [];
-    
-    // Zoek naar de elementen die de parfumdata bevatten. Pas de CSS-selectoren aan
-    $('.perfume-card').each((i, elem) => {
-      const name = $(elem).find('.perfume-name').text().trim();
-      const description = $(elem).find('.perfume-description').text().trim();
-      const notes = $(elem).find('.perfume-notes').text().trim();
-      const imageUrl = $(elem).find('img').attr('src');
-      
-      if (name && notes) {
-        perfumes.push({ name, description, notes, imageUrl });
-      }
+
+    // Extract the perfume name – typically contained in an h1 tag with an appropriate attribute
+    const name = $('h1[itemprop="name"]').text().trim();
+
+    // Extract the brand name – adjust the selector if needed (for example, if it’s part of a header section)
+    const brand = $('div.perfumeHeader a[href*="/perfume/"]').first().text().trim();
+
+    // Extract the description – this might be in a container with class "description" or similar
+    const description = $('div#info > p, div.description').first().text().trim();
+
+    // Extract the image URL – usually found in the main image container
+    const imageUrl = $('div.perfumeMainImage img').attr('src');
+
+    // Extract notes (top, middle, base) if available.
+    // The notes are often displayed in separate sections with distinct classes.
+    const topNotes = [];
+    const middleNotes = [];
+    const baseNotes = [];
+
+    // Example selectors for note sections (you may need to update these)
+    $('div.notes div.note.top-note span.note-name').each((i, el) => {
+      topNotes.push($(el).text().trim());
     });
-    
-    // Sla de gescrapete data op in een JSON-bestand
-    fs.writeFileSync('scrapedData.json', JSON.stringify(perfumes, null, 2));
-    console.log('Data opgeslagen in scrapedData.json');
+    $('div.notes div.note.middle-note span.note-name').each((i, el) => {
+      middleNotes.push($(el).text().trim());
+    });
+    $('div.notes div.note.base-note span.note-name').each((i, el) => {
+      baseNotes.push($(el).text().trim());
+    });
+
+    const perfumeDetails = {
+      name,
+      brand,
+      description,
+      imageUrl,
+      notes: {
+        top: topNotes,
+        middle: middleNotes,
+        base: baseNotes
+      }
+    };
+
+    // Save the scraped data to a JSON file
+    fs.writeFileSync('scrapedData.json', JSON.stringify(perfumeDetails, null, 2));
+    console.log('Data saved in scrapedData.json');
   } catch (error) {
-    console.error('Fout tijdens scrapen:', error);
+    console.error('Error during scraping:', error);
   }
 }
 
-// Voer de scraper functie uit
-scrapeFragrantia();
+// Run the scraper
+scrapeFragrantica();
