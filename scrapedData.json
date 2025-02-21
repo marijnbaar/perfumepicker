@@ -1,1 +1,464 @@
-[]
+[
+  {
+    "name": "A Girl In Capri",
+    "gender": "female",
+    "releaseYear": 2019,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/A-Girl-In-Capri-54419.html"
+  },
+  {
+    "name": "Avant Garde",
+    "gender": "male",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Avant-Garde-13612.html"
+  },
+  {
+    "name": "Clair de Jour",
+    "gender": "female",
+    "releaseYear": 1983,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Clair-de-Jour-12072.html"
+  },
+  {
+    "name": "Eau My Sin",
+    "gender": "female",
+    "releaseYear": 1971,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eau-My-Sin-57785.html"
+  },
+  {
+    "name": "Éclat d'Arpège Mon Éclat",
+    "gender": "female",
+    "releaseYear": 2022,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Mon-Eclat-74805.html"
+  },
+  {
+    "name": "Eclat de Fleurs",
+    "gender": "female",
+    "releaseYear": 2015,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-de-Fleurs-32019.html"
+  },
+  {
+    "name": "Éclat de Nuit",
+    "gender": "female",
+    "releaseYear": 2018,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-de-Nuit-50213.html"
+  },
+  {
+    "name": "L'Homme Sport",
+    "gender": "male",
+    "releaseYear": 2009,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/L-Homme-Sport-5717.html"
+  },
+  {
+    "name": "Lanvin L'Homme",
+    "gender": "male",
+    "releaseYear": 1997,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-L-Homme-6094.html"
+  },
+  {
+    "name": "Oxygene",
+    "gender": "female",
+    "releaseYear": 2000,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Oxygene-990.html"
+  },
+  {
+    "name": "Oxygene Homme",
+    "gender": "male",
+    "releaseYear": 2001,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Oxygene-Homme-991.html"
+  },
+  {
+    "name": "Vetyver (2003)",
+    "gender": "male",
+    "releaseYear": 2003,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Vetyver-2003-4919.html"
+  },
+  {
+    "name": "Arpège",
+    "gender": "female",
+    "releaseYear": 1927,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Arpege-6.html"
+  },
+  {
+    "name": "Arpege Eau Delicieuse",
+    "gender": "female",
+    "releaseYear": 1928,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Arpege-Eau-Delicieuse-14014.html"
+  },
+  {
+    "name": "Arpege Eclat d'Arpege",
+    "gender": "female",
+    "releaseYear": 2006,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Arpege-Eclat-d-Arpege-5798.html"
+  },
+  {
+    "name": "Arpege Pour Homme",
+    "gender": "male",
+    "releaseYear": 2005,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Arpege-Pour-Homme-14.html"
+  },
+  {
+    "name": "Eclat d'Arpege",
+    "gender": "female",
+    "releaseYear": 2010,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-9110.html"
+  },
+  {
+    "name": "Eclat d'Arpege Arty",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Arty-25987.html"
+  },
+  {
+    "name": "Eclat d'Arpege Bijou Collector",
+    "gender": "female",
+    "releaseYear": 2005,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Bijou-Collector-5799.html"
+  },
+  {
+    "name": "Eclat d'Arpege Gourmandise",
+    "gender": "female",
+    "releaseYear": 2012,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Gourmandise-16073.html"
+  },
+  {
+    "name": "Eclat d'Arpege Limited Edition",
+    "gender": "female",
+    "releaseYear": 2009,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Limited-Edition-6638.html"
+  },
+  {
+    "name": "Eclat d'Arpege Perfumed Hair Mist",
+    "gender": "female",
+    "releaseYear": 2018,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Perfumed-Hair-Mist-50346.html"
+  },
+  {
+    "name": "Eclat d'Arpege Perles",
+    "gender": "female",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Perles-12625.html"
+  },
+  {
+    "name": "Eclat d'Arpege Pour Homme",
+    "gender": "male",
+    "releaseYear": 2015,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Pour-Homme-29536.html"
+  },
+  {
+    "name": "Éclat d'Arpège Sheer",
+    "gender": "female",
+    "releaseYear": 2020,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Sheer-63095.html"
+  },
+  {
+    "name": "Eclat d'Arpege Tropical Flower",
+    "gender": "female",
+    "releaseYear": 2017,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Tropical-Flower-46052.html"
+  },
+  {
+    "name": "Eclat d’Arpège",
+    "gender": "female",
+    "releaseYear": 2002,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-988.html"
+  },
+  {
+    "name": "Eclat d’Arpege Eyes On You",
+    "gender": "female",
+    "releaseYear": 2015,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Eyes-On-You-31452.html"
+  },
+  {
+    "name": "Éclat d’Arpège Pretty Face",
+    "gender": "female",
+    "releaseYear": 2013,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Pretty-Face-18541.html"
+  },
+  {
+    "name": "Eclat d’Arpege So Cute",
+    "gender": "female",
+    "releaseYear": 2016,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-So-Cute-39514.html"
+  },
+  {
+    "name": "Eclat d’Arpège Summer 2007",
+    "gender": "female",
+    "releaseYear": 2007,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eclat-d-Arpege-Summer-2007-989.html"
+  },
+  {
+    "name": "Jeanne La Plume",
+    "gender": "female",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-La-Plume-11316.html"
+  },
+  {
+    "name": "Jeanne La Rose",
+    "gender": "female",
+    "releaseYear": 2010,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-La-Rose-7761.html"
+  },
+  {
+    "name": "Jeanne Lanvin",
+    "gender": "female",
+    "releaseYear": 2008,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-3779.html"
+  },
+  {
+    "name": "Jeanne Lanvin Blossom",
+    "gender": "female",
+    "releaseYear": 2022,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-Blossom-74280.html"
+  },
+  {
+    "name": "Jeanne Lanvin Couture",
+    "gender": "female",
+    "releaseYear": 2012,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-Couture-14704.html"
+  },
+  {
+    "name": "Jeanne Lanvin Couture Birdie",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-Couture-Birdie-23100.html"
+  },
+  {
+    "name": "Jeanne Lanvin Limited Edition",
+    "gender": "female",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-Limited-Edition-38179.html"
+  },
+  {
+    "name": "Jeanne Lanvin Scandal",
+    "gender": "female",
+    "releaseYear": 2016,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-Scandal-33458.html"
+  },
+  {
+    "name": "My Sin",
+    "gender": "female",
+    "releaseYear": 2017,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/My-Sin-43152.html"
+  },
+  {
+    "name": "Blue Orchid",
+    "gender": "female",
+    "releaseYear": 2021,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Blue-Orchid-69741.html"
+  },
+  {
+    "name": "Sunny Magnolia",
+    "gender": "female",
+    "releaseYear": 2021,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Sunny-Magnolia-69742.html"
+  },
+  {
+    "name": "Sweet Jasmine",
+    "gender": "female",
+    "releaseYear": 2023,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Sweet-Jasmine-83028.html"
+  },
+  {
+    "name": "Water Lily",
+    "gender": "female",
+    "releaseYear": 2021,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Water-Lily-69740.html"
+  },
+  {
+    "name": "Orange Ambre",
+    "gender": "unisex",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Orange-Ambre-37314.html"
+  },
+  {
+    "name": "Oud & Rose",
+    "gender": "unisex",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Oud-Rose-37315.html"
+  },
+  {
+    "name": "Vetyver Blanc",
+    "gender": "unisex",
+    "releaseYear": 2011,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Vetyver-Blanc-37316.html"
+  },
+  {
+    "name": "Marry Me",
+    "gender": "female",
+    "releaseYear": 2010,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Marry-Me-9405.html"
+  },
+  {
+    "name": "Marry Me a la Folie",
+    "gender": "female",
+    "releaseYear": 2013,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Marry-Me-a-la-Folie-17374.html"
+  },
+  {
+    "name": "Marry Me Confettis",
+    "gender": "female",
+    "releaseYear": 2015,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Marry-Me-Confettis-29254.html"
+  },
+  {
+    "name": "Marry Me! Love Balloons",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Marry-Me-Love-Balloons-22925.html"
+  },
+  {
+    "name": "Marry Me! Love Edition",
+    "gender": "female",
+    "releaseYear": 2012,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Marry-Me-Love-Edition-14472.html"
+  },
+  {
+    "name": "Lanvin Me",
+    "gender": "female",
+    "releaseYear": 2013,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-Me-17701.html"
+  },
+  {
+    "name": "Lanvin Me L'Eau",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-Me-L-Eau-23637.html"
+  },
+  {
+    "name": "Lanvin Me L’Absolu",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-Me-L-Absolu-27976.html"
+  },
+  {
+    "name": "Lanvin Me Limited Edition 2014",
+    "gender": "female",
+    "releaseYear": 2014,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-Me-Limited-Edition-2014-23034.html"
+  },
+  {
+    "name": "Lanvin Me Limited Edition 2015",
+    "gender": "female",
+    "releaseYear": 2015,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-Me-Limited-Edition-2015-39409.html"
+  },
+  {
+    "name": "Modern Princess",
+    "gender": "female",
+    "releaseYear": 2016,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Modern-Princess-38890.html"
+  },
+  {
+    "name": "Modern Princess Blooming",
+    "gender": "female",
+    "releaseYear": 2020,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Modern-Princess-Blooming-58715.html"
+  },
+  {
+    "name": "Modern Princess Eau Sensuelle",
+    "gender": "female",
+    "releaseYear": 2018,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Modern-Princess-Eau-Sensuelle-48478.html"
+  },
+  {
+    "name": "Modern Princess in Jeans",
+    "gender": "female",
+    "releaseYear": 2024,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Modern-Princess-in-Jeans-95441.html"
+  },
+  {
+    "name": "Rumeur",
+    "gender": "female",
+    "releaseYear": 2006,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Rumeur-364.html"
+  },
+  {
+    "name": "Rumeur 2 Rose",
+    "gender": "female",
+    "releaseYear": 2006,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Rumeur-2-Rose-2271.html"
+  },
+  {
+    "name": "Crescendo",
+    "gender": "female",
+    "releaseYear": 1965,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Crescendo-16977.html"
+  },
+  {
+    "name": "Eau de Lanvin",
+    "gender": "unisex",
+    "releaseYear": 1933,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Eau-de-Lanvin-73681.html"
+  },
+  {
+    "name": "Figaro",
+    "gender": "male",
+    "releaseYear": 1964,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Figaro-49542.html"
+  },
+  {
+    "name": "Géranium D'Espagne (Spanish Geranium)",
+    "gender": "female",
+    "releaseYear": 1925,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Geranium-D-Espagne-Spanish-Geranium-45085.html"
+  },
+  {
+    "name": "Jeanne Lanvin My Sin",
+    "gender": "female",
+    "releaseYear": 1924,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Jeanne-Lanvin-My-Sin-9074.html"
+  },
+  {
+    "name": "Lanvin for Men",
+    "gender": "male",
+    "releaseYear": 1979,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lanvin-for-Men-45125.html"
+  },
+  {
+    "name": "Lavande",
+    "gender": "male",
+    "releaseYear": 1964,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Lavande-49543.html"
+  },
+  {
+    "name": "Monsieur Lanvin",
+    "gender": "male",
+    "releaseYear": 1964,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Monsieur-Lanvin-5800.html"
+  },
+  {
+    "name": "Pretexte",
+    "gender": "female",
+    "releaseYear": 1937,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Pretexte-45821.html"
+  },
+  {
+    "name": "Scandal",
+    "gender": "female",
+    "releaseYear": 1931,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Scandal-13086.html"
+  },
+  {
+    "name": "Vetyver (1964)",
+    "gender": "male",
+    "releaseYear": 1964,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Vetyver-1964-49544.html"
+  },
+  {
+    "name": "Via Lanvin",
+    "gender": "female",
+    "releaseYear": 1971,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Via-Lanvin-13085.html"
+  },
+  {
+    "name": "Rumeur (original)",
+    "gender": "female",
+    "releaseYear": 1934,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Rumeur-original-45084.html"
+  },
+  {
+    "name": "Rumeur 2 Rose Limited Edition",
+    "gender": "female",
+    "releaseYear": 2008,
+    "detailUrl": "https://www.fragrantica.com/perfume/Lanvin/Rumeur-2-Rose-Limited-Edition-26761.html"
+  }
+]
