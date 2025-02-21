@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const pLimit = require('p-limit');
 puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
@@ -165,6 +164,9 @@ async function scrapePerfumePage(browser, perfumeUrl) {
 
 // Main function orchestrating the full scraping process.
 async function main() {
+  // Dynamically import p-limit since it's an ES module.
+  const pLimit = (await import('p-limit')).default;
+  
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
