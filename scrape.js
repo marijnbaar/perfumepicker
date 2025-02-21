@@ -4,8 +4,6 @@ const fs = require('fs');
 
 const BASE_URL = 'https://www.fragrantica.com';
 const DESIGNERS_URL = `${BASE_URL}/designers/`;  // Main page listing all designers
-
-// Set a realistic User-Agent string.
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
 async function scrapeDesignersPage(page) {
@@ -16,11 +14,10 @@ async function scrapeDesignersPage(page) {
     const $ = cheerio.load(html);
     const designerUrls = new Set();
 
-    // Assume designer links are contained in anchor tags that point to a URL that starts with /designers/
+    // Assuming designer links start with '/designers/' (excluding the main page itself)
     $('a').each((i, el) => {
       const href = $(el).attr('href');
       if (href && href.startsWith('/designers/') && href !== '/designers/') {
-        // Build the absolute URL
         const absoluteUrl = new URL(href, BASE_URL).href;
         designerUrls.add(absoluteUrl);
       }
@@ -41,10 +38,10 @@ async function scrapeDesignerForPerfumeLinks(page, designerUrl) {
     const $ = cheerio.load(html);
     const perfumeLinks = new Set();
 
-    // Collect any link that includes '/perfumes/' (avoid duplicates)
+    // Adjusted filter: Look for links containing "/perfume/" (singular)
     $('a').each((i, el) => {
       const href = $(el).attr('href');
-      if (href && href.includes('/perfumes/')) {
+      if (href && href.includes('/perfume/')) {
         const absoluteUrl = href.startsWith('http')
           ? href
           : new URL(href, designerUrl).href;
@@ -66,7 +63,7 @@ async function scrapePerfumeDetail(page, perfumeUrl) {
     const html = await page.content();
     const $ = cheerio.load(html);
 
-    // Example extraction; adjust selectors based on actual page structure.
+    // Example selectors; adjust these if necessary based on the page structure.
     const name = $('h1').first().text().trim();
     const brand = $('.breadcrumb a').eq(1).text().trim();
     const thumbnail = $('#mainpicbox > img').attr('src') || '';
