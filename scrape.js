@@ -46,14 +46,14 @@ async function getDesignerUrls(page) {
   return designerUrls;
 }
 
-// Extract perfume links from a designer page using fallback selectors.
+// Extract perfume links from a designer page using a flexible approach.
 function getPerfumeLinks($, designerUrl) {
   let links = [];
-  // Primary approach: use a known container from your screenshot.
+  // Primary approach: use anchors within elements with class "prefumeHbox"
   $('.prefumeHbox h3 a').each((_, el) => {
     links.push($(el).attr('href'));
   });
-  // Fallback: any <a> tag that has "/perfume/" in href.
+  // Fallback: look for any anchor with '/perfume/' in its href.
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
       links.push($(el).attr('href'));
@@ -64,13 +64,13 @@ function getPerfumeLinks($, designerUrl) {
   return Array.from(new Set(links));
 }
 
-// Get perfume links from a single designer page.
+// Get perfume links from a single designer page with error handling.
 async function getPerfumeLinksFromDesigner(page, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
   try {
     await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-    // Allow extra time for lazy-loading.
-    await page.waitForTimeout(2000);
+    // Wait for extra content to load (using waitFor as fallback for waitForTimeout)
+    await page.waitFor(2000);
     await scrollPage(page);
   } catch (err) {
     console.error(`Error navigating to ${designerUrl}:`, err.toString());
@@ -88,8 +88,7 @@ async function scrapePerfumePage(page, perfumeUrl) {
   try {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
     await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-    // Wait for a key element to ensure the page has loaded.
-    await page.waitForSelector('h1', { timeout: 15000 });
+    await page.waitFor('h1', { timeout: 15000 });
     await scrollPage(page);
     const html = await page.content();
     const $ = cheerio.load(html);
@@ -132,7 +131,7 @@ async function scrapePerfumePage(page, perfumeUrl) {
   }
 }
 
-// Main function orchestrating the scraping across all designer pages.
+// Main function to orchestrate the scraping process.
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
