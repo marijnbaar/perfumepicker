@@ -27,30 +27,149 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
-      // ThemeToggle Component using inline SVGs with data-lucide attributes.
+      // -----------------------------
+      // Data & Configuration
+      // -----------------------------
+      // Mock perfume data
+      const mockPerfumes = [
+        {
+          name: "Midnight Rose Dreams",
+          brand: "Maison de Parfum",
+          description:
+            "A sophisticated blend of dark roses and precious woods, enhanced with sparkling bergamot and warm vanilla.",
+          notes: {
+            top: ["Bergamot", "Pink Pepper", "Black Currant"],
+            middle: ["Damascus Rose", "Bulgarian Rose", "Peony"],
+            base: ["Vanilla", "Sandalwood", "Patchouli", "White Musk"]
+          },
+          imageUrl: "/api/placeholder/128/160"
+        },
+        {
+          name: "Ocean's Whisper",
+          brand: "Azure Scents",
+          description:
+            "A fresh aquatic fragrance that captures the essence of sea breeze and coastal flowers.",
+          notes: {
+            top: ["Sea Notes", "Mandarin Orange", "Ozonic Notes"],
+            middle: ["Salt", "Water Lily", "Jasmine"],
+            base: ["Driftwood", "Ambergris", "Cedar"]
+          },
+          imageUrl: "/api/placeholder/128/160"
+        },
+        {
+          name: "Velvet Oud",
+          brand: "Eastern Luxe",
+          description:
+            "An opulent oriental fragrance featuring precious oud wood and exotic spices.",
+          notes: {
+            top: ["Saffron", "Cardamom", "Black Pepper"],
+            middle: ["Oud", "Rose", "Incense"],
+            base: ["Amber", "Vanilla", "Labdanum"]
+          },
+          imageUrl: "/api/placeholder/128/160"
+        }
+      ];
+
+      // Fragrance families and their common notes
+      const commonNotes = {
+        Aromatic: ["Lavender", "Rosemary", "Sage", "Mint", "Thyme"],
+        Citrus: ["Bergamot", "Lemon", "Mandarin Orange", "Grapefruit", "Lime"],
+        Oriental: ["Vanilla", "Amber", "Oud", "Myrrh", "Frankincense"],
+        Woody: ["Sandalwood", "Cedar", "Patchouli", "Vetiver", "Pine"],
+        Floral: ["Rose", "Jasmine", "Lily", "Iris", "Peony"],
+        Fresh: ["Sea Notes", "Green Notes", "Ozonic Notes", "Rain", "Air"],
+        Fruity: ["Apple", "Peach", "Black Currant", "Pear", "Plum"],
+        Spicy: ["Saffron", "Cardamom", "Pink Pepper", "Cinnamon", "Nutmeg"]
+      };
+
+      // Colors for each fragrance family
+      const familyColors = {
+        Aromatic: {
+          bg: "bg-green-100",
+          text: "text-green-800",
+          hover: "hover:bg-green-200",
+          selected: "bg-green-600"
+        },
+        Citrus: {
+          bg: "bg-yellow-100",
+          text: "text-yellow-800",
+          hover: "hover:bg-yellow-200",
+          selected: "bg-yellow-600"
+        },
+        Oriental: {
+          bg: "bg-red-100",
+          text: "text-red-800",
+          hover: "hover:bg-red-200",
+          selected: "bg-red-600"
+        },
+        Woody: {
+          bg: "bg-amber-100",
+          text: "text-amber-800",
+          hover: "hover:bg-amber-200",
+          selected: "bg-amber-600"
+        },
+        Floral: {
+          bg: "bg-pink-100",
+          text: "text-pink-800",
+          hover: "hover:bg-pink-200",
+          selected: "bg-pink-600"
+        },
+        Fresh: {
+          bg: "bg-blue-100",
+          text: "text-blue-800",
+          hover: "hover:bg-blue-200",
+          selected: "bg-blue-600"
+        },
+        Fruity: {
+          bg: "bg-orange-100",
+          text: "text-orange-800",
+          hover: "hover:bg-orange-200",
+          selected: "bg-orange-600"
+        },
+        Spicy: {
+          bg: "bg-purple-100",
+          text: "text-purple-800",
+          hover: "hover:bg-purple-200",
+          selected: "bg-purple-600"
+        }
+      };
+
+      // -----------------------------
+      // Components
+      // -----------------------------
+
+      // ThemeToggle using inline SVG placeholders with data-lucide attributes
       const ThemeToggle = ({ isDark, onToggle }) => (
         <button
           onClick={onToggle}
           className="fixed top-4 right-4 p-2 rounded-full transition-colors duration-200"
         >
           {isDark ? (
-            <svg data-lucide="sun" className="w-6 h-6 text-yellow-400"></svg>
+            <svg
+              data-lucide="sun"
+              className="w-6 h-6 text-yellow-400"
+              width="24"
+              height="24"
+            ></svg>
           ) : (
-            <svg data-lucide="moon" className="w-6 h-6 text-gray-600"></svg>
+            <svg
+              data-lucide="moon"
+              className="w-6 h-6 text-gray-600"
+              width="24"
+              height="24"
+            ></svg>
           )}
         </button>
       );
 
-      // PerfumeCard Component
+      // PerfumeCard component displays perfume details
       const PerfumeCard = ({ perfume, onAction, actionType = "add", isDark }) => {
-        // Parse notes: assume notes is an object with keys: top, middle, base.
         const parseNotes = (notesObj) => {
           if (!notesObj) return { top: [], middle: [], base: [] };
           if (typeof notesObj === "object" && (notesObj.top || notesObj.middle || notesObj.base)) {
             return notesObj;
           }
-          // If notes is a string, split by commas.
-          const notesArray = notesObj.toLowerCase().split(",").map(n => n.trim());
+          const notesArray = notesObj.toLowerCase().split(",").map((n) => n.trim());
           return { top: notesArray, middle: [], base: [] };
         };
 
@@ -60,133 +179,210 @@
         const borderColor = isDark ? "border-gray-700" : "border-gray-200";
 
         return (
-          <div className={`${cardBg} rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 animate__animated animate__fadeIn border ${borderColor} p-4 mb-4`}>
+          <div
+            className={`${cardBg} rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 animate__animated animate__fadeIn border ${borderColor} p-4 mb-4`}
+          >
             <div className="flex">
-              <div className="w-32 h-40 flex-shrink-0">
+              <div className="w-32 h-40 flex-shrink-0 bg-gradient-to-br from-purple-100 to-pink-100">
                 <img
-                  src={perfume.thumbnail || perfume.imageUrl || "https://via.placeholder.com/128x160"}
+                  src={
+                    perfume.thumbnail ||
+                    perfume.imageUrl ||
+                    "https://via.placeholder.com/128x160"
+                  }
                   alt={perfume.name}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 pl-4">
-                <h3 className={`text-xl font-medium mb-2 ${textColor}`}>{perfume.name}</h3>
-                <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-4`}>
-                  {perfume.description}
-                </p>
-                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} italic mb-2`}>
-                  Designer: {perfume.brand || "Unknown"}
-                </p>
-                <div className={`${isDark ? "bg-gray-700" : "bg-purple-50"} rounded-lg p-4`}>
-                  <p className={`text-sm font-semibold mb-2 ${isDark ? "text-gray-200" : "text-purple-700"}`}>
-                    Notes:
-                  </p>
-                  <p className="text-sm mb-1">
-                    <strong>Top:</strong> {notes.top.join(", ")}
-                  </p>
-                  <p className="text-sm mb-1">
-                    <strong>Middle:</strong> {notes.middle.join(", ")}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Base:</strong> {notes.base.join(", ")}
-                  </p>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className={`text-xl font-medium mb-2 ${textColor}`}>
+                      {perfume.name}
+                    </h3>
+                    <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-4`}>
+                      {perfume.description}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        isDark ? "text-gray-400" : "text-gray-500"
+                      } italic mb-2`}
+                    >
+                      Designer: {perfume.brand || "Unknown"}
+                    </p>
+                    <div
+                      className={`${
+                        isDark ? "bg-gray-700" : "bg-purple-50"
+                      } rounded-lg p-4`}
+                    >
+                      <p
+                        className={`text-sm ${
+                          isDark ? "text-gray-200" : "text-purple-700"
+                        } font-semibold mb-2`}
+                      >
+                        Notes:
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Top:</strong> {notes.top.join(", ")}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Middle:</strong> {notes.middle.join(", ")}
+                      </p>
+                      <p className="text-sm">
+                        <strong>Base:</strong> {notes.base.join(", ")}
+                      </p>
+                    </div>
+                  </div>
+                  {onAction && (
+                    <button
+                      onClick={() => onAction(perfume)}
+                      className={`ml-4 p-2 rounded-full transition-all duration-300 ${
+                        isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                      }`}
+                    >
+                      <svg
+                        data-lucide="heart"
+                        className="text-red-500"
+                        width="24"
+                        height="24"
+                      ></svg>
+                    </button>
+                  )}
                 </div>
               </div>
-              {onAction && (
-                <button
-                  onClick={() => onAction(perfume)}
-                  className={`ml-4 p-2 rounded-full transition-all duration-300 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"}`}
-                >
-                  <svg data-lucide="heart" className="text-red-500" width="24" height="24"></svg>
-                </button>
-              )}
             </div>
           </div>
         );
       };
 
+      // FamilySearch component for exploring perfumes by fragrance family
+      const FamilySearch = ({ selectedNotes, toggleNote, isDark }) => (
+        <div
+          className={`animate__animated animate__fadeIn ${
+            isDark ? "text-gray-200" : "text-gray-800"
+          }`}
+        >
+          <div className={`p-6 rounded-xl shadow-sm mb-8 ${isDark ? "bg-gray-800" : "bg-white"}`}>
+            <h3 className="text-xl font-semibold mb-6">Explore by Fragrance Family</h3>
+            <div className="space-y-6">
+              {Object.entries(commonNotes).map(([family, notes]) => (
+                <div key={family} className="space-y-3">
+                  <h4 className={`text-lg font-medium ${familyColors[family].text}`}>
+                    {family}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {notes.map((note) => (
+                      <button
+                        key={note}
+                        onClick={() => toggleNote(note)}
+                        className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${
+                          selectedNotes.includes(note)
+                            ? `${familyColors[family].selected} text-white`
+                            : `${familyColors[family].bg} ${familyColors[family].text} ${familyColors[family].hover}`
+                        }`}
+                      >
+                        {note}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      // -----------------------------
       // Main App Component
+      // -----------------------------
       const App = () => {
         const [activeTab, setActiveTab] = React.useState("home");
         const [favorites, setFavorites] = React.useState([]);
         const [searchQuery, setSearchQuery] = React.useState("");
         const [perfumes, setPerfumes] = React.useState([]);
+        const [selectedNotes, setSelectedNotes] = React.useState([]);
         const [isDark, setIsDark] = React.useState(false);
 
-        // Update body background based on theme.
+        // Update background based on theme
         React.useEffect(() => {
-          document.body.className = isDark 
+          document.body.className = isDark
             ? "bg-gray-900 min-h-screen"
             : "bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen";
         }, [isDark]);
 
-        // Load scraped data.
+        // Load perfume data
         React.useEffect(() => {
-          fetch("scrapedData.json")
-            .then(res => {
-              if (!res.ok) {
-                throw new Error("Network response was not ok " + res.status);
-              }
-              return res.json();
-            })
-            .then(data => setPerfumes(data))
-            .catch(err => {
+          fetch("./scrapedData.json")
+            .then((res) => res.json())
+            .then((data) => setPerfumes(data))
+            .catch((err) => {
               console.error("Error loading perfume data:", err);
-              setPerfumes([]);
+              setPerfumes(mockPerfumes);
             });
         }, []);
 
-        // Call lucide.createIcons() to replace SVG placeholders with icons.
-        React.useEffect(() => {
-          if (window.lucide && window.lucide.createIcons) {
-            window.lucide.createIcons();
-          }
-        }, [isDark, favorites, searchQuery, perfumes]);
-
-        // Filter perfumes by search query.
+        // Filter perfumes by search query and selected notes
         const filteredPerfumes = React.useMemo(() => {
-          return perfumes.filter(perfume => {
-            const query = searchQuery.toLowerCase();
-            return (
-              perfume.name.toLowerCase().includes(query) ||
-              (perfume.brand && perfume.brand.toLowerCase().includes(query))
-            );
-          });
-        }, [perfumes, searchQuery]);
+          return (perfumes.length ? perfumes : mockPerfumes).filter((perfume) => {
+            const matchesSearch =
+              perfume.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              (perfume.brand &&
+                perfume.brand.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        // Toggle favorite
-        const toggleFavorite = (perfume) => {
-          setFavorites(prev => {
-            const exists = prev.some(p => p.name === perfume.name && p.brand === perfume.brand);
-            return exists
-              ? prev.filter(p => p.name !== perfume.name || p.brand !== perfume.brand)
-              : [...prev, perfume];
+            const matchesNotes =
+              selectedNotes.length === 0 ||
+              selectedNotes.some((note) => {
+                const allNotes = [
+                  ...(perfume.notes?.top || []),
+                  ...(perfume.notes?.middle || []),
+                  ...(perfume.notes?.base || [])
+                ].map((n) => n.toLowerCase());
+                return allNotes.includes(note.toLowerCase());
+              });
+
+            return matchesSearch && matchesNotes;
           });
+        }, [perfumes, searchQuery, selectedNotes]);
+
+        const toggleNote = (note) => {
+          setSelectedNotes((prev) =>
+            prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]
+          );
+        };
+
+        const toggleFavorite = (perfume) => {
+          setFavorites((prev) =>
+            prev.some((p) => p.name === perfume.name)
+              ? prev.filter((p) => p.name !== perfume.name)
+              : [...prev, perfume]
+          );
         };
 
         return (
           <div className="max-w-6xl mx-auto p-6">
             <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
 
-            <header className={`text-center mb-12 animate__animated animate__fadeIn ${isDark ? "text-gray-100" : "text-purple-800"}`}>
-              <h1 className="text-4xl font-light mb-4">Perfume Recommendation App</h1>
+            <header className="text-center mb-12 animate__animated animate__fadeIn">
+              <h1 className={`text-4xl font-light mb-4 ${isDark ? "text-gray-100" : "text-purple-800"}`}>
+                Perfume Recommendation App
+              </h1>
               <p className={isDark ? "text-gray-300" : "text-purple-600"}>
                 Discover new fragrances and save your favorites
               </p>
             </header>
 
             <nav className="mb-8">
-              <div className="flex justify-center gap-4">
-                {["home", "favorites"].map(tab => (
+              <div className="flex justify-center gap-4 mb-8">
+                {["home", "explore", "favorites"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-6 py-3 rounded-full transition-all duration-300 ${
-                      activeTab === tab 
-                        ? "bg-purple-600 text-white" 
-                        : isDark 
-                          ? "bg-gray-800 text-gray-200 hover:bg-gray-700" 
-                          : "bg-white text-purple-600 hover:bg-purple-50"
+                      activeTab === tab
+                        ? "bg-purple-600 text-white"
+                        : isDark
+                        ? "bg-gray-800 text-gray-200 hover:bg-gray-700"
+                        : "bg-white text-purple-600 hover:bg-purple-50"
                     }`}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -197,20 +393,22 @@
 
             {activeTab === "home" && (
               <div className="animate__animated animate__fadeIn">
-                <div className="mb-6">
+                <div className={`p-6 rounded-xl shadow-sm mb-8 ${isDark ? "bg-gray-800" : "bg-white"}`}>
                   <input
                     type="text"
                     placeholder="Search by name or brand..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-purple-300 outline-none ${
-                      isDark ? "bg-gray-700 text-gray-200 border-gray-600" : "bg-white text-gray-800 border-gray-300"
+                    className={`w-full p-3 rounded-lg mb-6 focus:ring-2 focus:ring-purple-300 outline-none ${
+                      isDark
+                        ? "bg-gray-700 text-gray-200 border-gray-600"
+                        : "bg-white text-gray-800 border-gray-300"
                     }`}
                   />
                 </div>
                 {filteredPerfumes.length === 0 ? (
                   <p className={isDark ? "text-gray-200" : "text-gray-800"}>
-                    No perfumes found.
+                    No perfumes found matching your criteria.
                   </p>
                 ) : (
                   filteredPerfumes.map((perfume, index) => (
@@ -218,11 +416,21 @@
                       key={index}
                       perfume={perfume}
                       onAction={toggleFavorite}
-                      actionType={favorites.some(p => p.name === perfume.name) ? "remove" : "add"}
+                      actionType={favorites.some((p) => p.name === perfume.name) ? "remove" : "add"}
                       isDark={isDark}
                     />
                   ))
                 )}
+              </div>
+            )}
+
+            {activeTab === "explore" && (
+              <div className="animate__animated animate__fadeIn">
+                <FamilySearch
+                  selectedNotes={selectedNotes}
+                  toggleNote={toggleNote}
+                  isDark={isDark}
+                />
               </div>
             )}
 
@@ -250,6 +458,13 @@
       };
 
       ReactDOM.render(<App />, document.getElementById("root"));
+
+      // Ensure Lucide icons are rendered by replacing the SVG placeholders
+      React.useEffect(() => {
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+      }, []);
     </script>
   </body>
 </html>
