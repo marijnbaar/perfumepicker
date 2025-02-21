@@ -8,11 +8,11 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 function getPerfumeLinks($, designerUrl) {
   let links = [];
-  // Use a simpler selector: any element with class "prefumeHbox" containing an h3 with an anchor.
+  // Use a simpler selector based on your screenshot:
   $('.prefumeHbox h3 a').each((_, el) => {
     links.push($(el).attr('href'));
   });
-  // Fallback: if nothing found, scan all <a> tags for '/perfume/' substring.
+  // Fallback: if nothing is found, scan all <a> tags that contain '/perfume/'
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
       links.push($(el).attr('href'));
@@ -25,7 +25,7 @@ function getPerfumeLinks($, designerUrl) {
 
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
-  await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2' });
+  await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 60000 });
   const html = await page.content();
   const $ = cheerio.load(html);
   
@@ -46,7 +46,7 @@ async function getDesignerUrls(page) {
 
 async function getPerfumeLinksFromDesigner(page, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
-  await page.goto(designerUrl, { waitUntil: 'networkidle2' });
+  await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
   const html = await page.content();
   const $ = cheerio.load(html);
   
@@ -58,7 +58,7 @@ async function getPerfumeLinksFromDesigner(page, designerUrl) {
 async function scrapePerfumePage(page, perfumeUrl) {
   try {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
-    await page.goto(perfumeUrl, { waitUntil: 'networkidle2' });
+    await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
     const html = await page.content();
     const $ = cheerio.load(html);
 
