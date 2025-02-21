@@ -1,18 +1,14 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
-const cheerio = require('cheerio');
 const fs = require('fs');
+const cheerio = require('cheerio');
 
-const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
+puppeteer.use(StealthPlugin());
 
-// Helper: delay for a given number of milliseconds
 async function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
 
-// Helper: scroll the page slowly to trigger lazy-loading
 async function scrollPage(page) {
   await page.evaluate(async () => {
     await new Promise(resolve => {
@@ -30,12 +26,13 @@ async function scrollPage(page) {
   });
 }
 
-// Helper: clean a URL by removing any trailing colon.
 function cleanUrl(url) {
   return url.endsWith(':') ? url.slice(0, -1) : url;
 }
 
-// Get all designer URLs from the designers index page.
+const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
+
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
   await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 120000 });
@@ -59,7 +56,6 @@ async function getDesignerUrls(page) {
   return designerUrls;
 }
 
-// Extract perfume links from a designer page using fallback selectors.
 function getPerfumeLinks($, designerUrl) {
   let links = [];
   // Primary approach: use anchors within elements with class "prefumeHbox"
@@ -85,7 +81,6 @@ function getPerfumeLinks($, designerUrl) {
   return Array.from(new Set(links)); // Remove duplicates.
 }
 
-// Get perfume links from a single designer page with error handling.
 async function getPerfumeLinksFromDesigner(browser, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
   let page;
@@ -110,7 +105,6 @@ async function getPerfumeLinksFromDesigner(browser, designerUrl) {
   return perfumeLinks;
 }
 
-// Scrape details from a single perfume page.
 async function scrapePerfumePage(browser, perfumeUrl) {
   let page;
   try {
@@ -166,9 +160,7 @@ async function scrapePerfumePage(browser, perfumeUrl) {
   }
 }
 
-// Main function orchestrating the full scraping process.
 async function main() {
-  // Dynamically import p-limit inside main.
   const { default: pLimit } = await import('p-limit');
   
   const browser = await puppeteer.launch({
@@ -185,9 +177,11 @@ async function main() {
   const designerUrls = await getDesignerUrls(mainPage);
   await mainPage.close();
 
+  console.log("Designer URLs:", designerUrls);
+
   // Set concurrency limits.
-  const designerLimit = pLimit(5); // Up to 5 designer pages concurrently.
-  const perfumeLimit = pLimit(10); // Up to 10 perfume pages concurrently.
+  const designerLimit = pLimit(5);
+  const perfumeLimit = pLimit(10);
 
   // For each designer, get perfume links concurrently.
   const perfumeLinksArrays = await Promise.all(
@@ -208,7 +202,7 @@ async function main() {
 
   await browser.close();
 
-  // Save data to a JSON file.
+  console.log("All perfumes data count:", allPerfumesData.length);
   fs.writeFileSync('perfumesData.json', JSON.stringify(allPerfumesData, null, 2));
   console.log('Scraping complete. Data saved in perfumesData.json');
 }
