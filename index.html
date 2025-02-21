@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Perfume Recommendation App met Scraped Data</title>
+  <title>Parfum Aanbevelingsapplicatie</title>
   <!-- Tailwind CSS voor styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Animate.css voor animaties -->
@@ -13,14 +13,13 @@
   <!-- Babel Standalone voor in-browser JSX-transformatie -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
+<body class="bg-gradient-to-b from-teal-50 to-white">
   <div id="root"></div>
-  <!-- Onze React-code in een Babel-script -->
+
   <script type="text/babel">
     /**************************************************
-     * Dummy implementaties voor UI-componenten
+     * UI-componenten: Tabs, Cards, enz.
      **************************************************/
-    // Tabs-componenten
     const Tabs = ({ defaultValue, children }) => {
       const [activeTab, setActiveTab] = React.useState(defaultValue);
       return (
@@ -66,80 +65,76 @@
     const TabsContent = ({ value, children }) => <div>{children}</div>;
     TabsContent.displayName = "TabsContent";
 
-    // Card-componenten
-    const Card = ({ children, className = "" }) => <div className={`${className} border rounded shadow-sm`}>{children}</div>;
-    const CardContent = ({ children, className = "" }) => <div className={className}>{children}</div>;
-    const CardHeader = ({ children, className = "" }) => <div className={className}>{children}</div>;
-    const CardTitle = ({ children, className = "" }) => <h2 className={className}>{children}</h2>;
+    const Card = ({ children, className = "" }) => (
+      <div className={`${className} border rounded shadow-sm mb-4`}>
+        {children}
+      </div>
+    );
+    const CardContent = ({ children, className = "" }) => (
+      <div className={className}>{children}</div>
+    );
+    const CardHeader = ({ children, className = "" }) => (
+      <div className={className}>{children}</div>
+    );
+    const CardTitle = ({ children, className = "" }) => (
+      <h2 className={className}>{children}</h2>
+    );
 
-    // Input, Button, Alert-componenten
-    const Input = (props) => <input {...props} className={`border p-2 rounded ${props.className || ""}`} />;
-    const Button = (props) => <button {...props} className={`px-4 py-2 rounded ${props.className || ""}`}>{props.children}</button>;
-    const Alert = ({ children, className = "" }) => <div className={`border p-4 rounded ${className}`}>{children}</div>;
-    const AlertDescription = ({ children, className = "" }) => <p className={className}>{children}</p>;
+    const Input = (props) => (
+      <input
+        {...props}
+        className={`border p-2 rounded ${props.className || ""}`}
+      />
+    );
+    const Button = (props) => (
+      <button {...props} className={`px-4 py-2 rounded ${props.className || ""}`}>
+        {props.children}
+      </button>
+    );
+    const Alert = ({ children, className = "" }) => (
+      <div className={`border p-4 rounded ${className}`}>{children}</div>
+    );
+    const AlertDescription = ({ children, className = "" }) => (
+      <p className={className}>{children}</p>
+    );
 
-    // Dummy icoon-componenten
+    // Icons
     const Search = (props) => <span {...props}>🔍</span>;
     const Heart = (props) => <span {...props}>❤️</span>;
     const Bookmark = (props) => <span {...props}>🔖</span>;
     const Droplet = (props) => <span {...props}>💧</span>;
-    const Upload = (props) => <span {...props}>⤴️</span>;
 
     /**************************************************
-     * PerfumeCard: Weergeeft een parfum
+     * PerfumeCard: Toon individuele parfumgegevens
      **************************************************/
     const PerfumeCard = ({ perfume, onAction, actionType = "add" }) => {
-      // Voorbeeld van notencategorisatie (optioneel).
-      const categorizeNotes = (notesString) => {
-        const categories = {
-          topNotes: ['bergamot', 'citrus', 'lavender', 'pepper'],
-          middleNotes: ['jasmine', 'rose', 'iris', 'violet'],
-          baseNotes: ['vanilla', 'musk', 'sandalwood', 'amber']
-        };
+      // Kijken of notes een object is ({ top, middle, base }) of string
+      const parseNotes = (notesObj) => {
+        if (!notesObj) return { top: [], middle: [], base: [], other: [] };
 
-        const notes = (notesString || '').toLowerCase().split(',').map(note => note.trim());
+        // Als het al een object is met { top, middle, base }
+        if (typeof notesObj === 'object' && (notesObj.top || notesObj.middle || notesObj.base)) {
+          return notesObj;
+        }
+        // Anders ervan uitgaan dat het een string is en opbreken (optioneel)
+        const notesArray = notesObj.toLowerCase().split(',').map(n => n.trim());
         return {
-          top: notes.filter(note => categories.topNotes.some(n => note.includes(n))),
-          middle: notes.filter(note => categories.middleNotes.some(n => note.includes(n))),
-          base: notes.filter(note => categories.baseNotes.some(n => note.includes(n))),
-          other: notes.filter(note =>
-            !categories.topNotes.some(n => note.includes(n)) &&
-            !categories.middleNotes.some(n => note.includes(n)) &&
-            !categories.baseNotes.some(n => note.includes(n))
-          )
+          top: notesArray,
+          middle: [],
+          base: [],
+          other: []
         };
       };
 
-      const notes = categorizeNotes(perfume.notes || '');
-
-      const NoteSection = ({ title, notes, color }) => (
-        notes.length > 0 && (
-          <div className="mb-2">
-            <div className="flex items-center gap-1 mb-1">
-              <Droplet className={`w-3 h-3 ${color}`} />
-              <span className="text-sm font-normal">{title}</span>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {notes.map((note, idx) => (
-                <span 
-                  key={idx}
-                  className={`text-xs px-2 py-1 rounded-full bg-opacity-20 ${color.replace('text-', 'bg-')}`}
-                >
-                  {note}
-                </span>
-              ))}
-            </div>
-          </div>
-        )
-      );
+      const notes = parseNotes(perfume.notes);
 
       return (
-        <Card className="group transition-all duration-300 hover:shadow-lg overflow-hidden animate__animated animate__fadeInUp mb-4">
+        <Card className="animate__animated animate__fadeInUp">
           <CardContent className="p-0">
             <div className="flex">
               <div className="w-32 h-40 flex-shrink-0">
-                <img 
-                  src={perfume.imageUrl || "https://via.placeholder.com/128x160"} 
+                <img
+                  src={perfume.thumbnail || perfume.imageUrl || "https://via.placeholder.com/128x160"}
                   alt={perfume.name}
                   className="w-full h-full object-cover"
                 />
@@ -149,21 +144,25 @@
                   <div className="flex-1">
                     <h3 className="text-xl font-light mb-2 text-teal-800">{perfume.name}</h3>
                     <p className="text-gray-600 mb-4 font-light">{perfume.description}</p>
-                    <p className="text-xs text-gray-500 italic mb-2">Designer: {perfume.brand || 'Onbekend'}</p>
-
+                    <p className="text-xs text-gray-500 italic mb-2">
+                      Designer: {perfume.brand || 'Onbekend'}
+                    </p>
                     <div className="bg-teal-50 rounded-lg p-4">
-                      <NoteSection title="Topnoten" notes={notes.top} color="text-yellow-500" />
-                      <NoteSection title="Hartnoten" notes={notes.middle} color="text-pink-500" />
-                      <NoteSection title="Basisnoten" notes={notes.base} color="text-teal-500" />
-                      <NoteSection title="Overige noten" notes={notes.other} color="text-blue-500" />
+                      {/* Voorbeeld van weergave */}
+                      <p className="text-sm text-teal-700 font-semibold mb-2">Noten:</p>
+                      <p className="text-xs mb-1"><strong>Top:</strong> {notes.top.join(', ')}</p>
+                      <p className="text-xs mb-1"><strong>Middle:</strong> {notes.middle.join(', ')}</p>
+                      <p className="text-xs mb-1"><strong>Base:</strong> {notes.base.join(', ')}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => onAction && onAction(perfume)}
-                    className="ml-4 p-2 hover:bg-gray-100 rounded-full transition-all duration-300"
-                  >
-                    <Heart className={`h-5 w-5 ${actionType === "remove" ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
-                  </button>
+                  {onAction && (
+                    <button
+                      onClick={() => onAction(perfume)}
+                      className="ml-4 p-2 hover:bg-gray-100 rounded-full transition-all duration-300"
+                    >
+                      <Heart className={`h-5 w-5 ${actionType === "remove" ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -176,60 +175,58 @@
      * Hoofdcomponent: PerfumeRecommendationApp
      **************************************************/
     const PerfumeRecommendationApp = () => {
-      // States voor shelf, upload etc.
+      // Shelf (favorieten)
       const [shelf, setShelf] = React.useState([]);
-      const [uploadedImage, setUploadedImage] = React.useState(null);
 
-      // States voor zoekopdrachten
+      // Zoeken
       const [notesQuery, setNotesQuery] = React.useState('');
       const [designerQuery, setDesignerQuery] = React.useState('');
 
       // Gescrapete data
       const [scrapedData, setScrapedData] = React.useState([]);
       
-      // Afgeleid: Gesorteerd op naam (voor het overzicht)
+      // Data sorteren
       const alphabeticalData = React.useMemo(() => {
-        // Kopie maken om sort te kunnen uitvoeren zonder originele data te muteren
         return [...scrapedData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       }, [scrapedData]);
 
-      // Data laden uit scrapedData.json
+      // JSON laden
       React.useEffect(() => {
-        fetch('/scrapedData.json')
-          .then(response => response.json())
+        // Gebruik relatieve pad './scrapedData.json' zodat GH Pages dit kan laden
+        fetch('./scrapedData.json')
+          .then(res => res.json())
           .then(data => setScrapedData(data))
-          .catch(error => console.error('Fout bij laden scraped data:', error));
+          .catch(err => console.error('Fout bij laden scrapedData:', err));
       }, []);
 
-      // Handle image upload (optioneel, zoals in je originele code)
-      const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = () => setUploadedImage(reader.result);
-          reader.readAsDataURL(file);
-        }
-      };
-
-      // Filter op basis van noten
+      // Filter op noten
       const filteredByNotes = React.useMemo(() => {
         if (!notesQuery) return scrapedData;
-        return scrapedData.filter((perfume) =>
-          (perfume.notes || '').toLowerCase().includes(notesQuery.toLowerCase())
-        );
+        return scrapedData.filter(perfume => {
+          // Combine top, middle, base arrays
+          let allNotes = [];
+          if (perfume.notes) {
+            allNotes = [
+              ...(perfume.notes.top || []),
+              ...(perfume.notes.middle || []),
+              ...(perfume.notes.base || [])
+            ];
+          }
+          const notesString = allNotes.join(' ').toLowerCase();
+          return notesString.includes(notesQuery.toLowerCase());
+        });
       }, [notesQuery, scrapedData]);
 
-      // Filter op basis van designer
+      // Filter op designer
       const filteredByDesigner = React.useMemo(() => {
         if (!designerQuery) return scrapedData;
-        return scrapedData.filter((perfume) =>
+        return scrapedData.filter(perfume =>
           (perfume.brand || '').toLowerCase().includes(designerQuery.toLowerCase())
         );
       }, [designerQuery, scrapedData]);
 
       // Shelf management
       const addToShelf = (perfume) => {
-        // Use an 'id' or unique property if available; fallback to name + brand
         const exists = shelf.some(
           (p) => p.name === perfume.name && p.brand === perfume.brand
         );
@@ -240,10 +237,14 @@
       };
 
       return (
-        <div className="max-w-4xl mx-auto p-6 bg-gradient-to-b from-teal-50 to-white min-h-screen font-light">
+        <div className="max-w-4xl mx-auto p-6 font-light">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-light mb-2 text-teal-800">Parfum Aanbevelingsapplicatie</h1>
-            <p className="text-teal-600">Ontdek nieuwe geuren en bewaar je favorieten</p>
+            <h1 className="text-4xl font-light mb-2 text-teal-800">
+              Parfum Aanbevelingsapplicatie
+            </h1>
+            <p className="text-teal-600">
+              Ontdek nieuwe geuren en bewaar je favorieten
+            </p>
           </div>
 
           <Tabs defaultValue="notesSearch">
@@ -264,11 +265,13 @@
               </TabsTrigger>
             </TabsList>
 
-            {/** TAB 1: Zoeken op noten **/}
+            {/* TAB 1: Zoeken op Noten */}
             <TabsContent value="notesSearch">
               <Card className="bg-white/50 backdrop-blur-sm mb-6">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">Zoek parfums op noten</CardTitle>
+                  <CardTitle className="text-teal-800 font-light">
+                    Zoek parfums op noten
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -278,20 +281,6 @@
                       onChange={(e) => setNotesQuery(e.target.value)}
                       className="flex-1"
                     />
-                    <label
-                      htmlFor="image-upload"
-                      className="cursor-pointer inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded"
-                    >
-                      <Upload className="w-4 h-4" />
-                      <span>Upload Afbeelding</span>
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
                   </div>
                 </CardContent>
               </Card>
@@ -315,11 +304,13 @@
               </div>
             </TabsContent>
 
-            {/** TAB 2: Zoeken op designer **/}
+            {/* TAB 2: Zoeken op Designer */}
             <TabsContent value="designerSearch">
               <Card className="bg-white/50 backdrop-blur-sm mb-6">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">Zoek parfums op designer</CardTitle>
+                  <CardTitle className="text-teal-800 font-light">
+                    Zoek parfums op designer
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Input
@@ -350,14 +341,18 @@
               </div>
             </TabsContent>
 
-            {/** TAB 3: Overzicht (alfabetisch) **/}
+            {/* TAB 3: Overzicht (alfabetisch) */}
             <TabsContent value="overview">
               <Card className="bg-white/50 backdrop-blur-sm mb-6">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">Alfabetisch Overzicht</CardTitle>
+                  <CardTitle className="text-teal-800 font-light">
+                    Alfabetisch Overzicht
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 font-light">Alle parfums gesorteerd op naam (A-Z).</p>
+                  <p className="text-gray-600 font-light">
+                    Alle parfums gesorteerd op naam (A-Z).
+                  </p>
                 </CardContent>
               </Card>
 
@@ -380,11 +375,13 @@
               </div>
             </TabsContent>
 
-            {/** TAB 4: Mijn Shelf **/}
+            {/* TAB 4: Mijn Shelf */}
             <TabsContent value="shelf">
               <Card className="bg-white/50 backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">Mijn Favoriete Parfums</CardTitle>
+                  <CardTitle className="text-teal-800 font-light">
+                    Mijn Favoriete Parfums
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {shelf.length === 0 ? (
@@ -408,7 +405,6 @@
                 </CardContent>
               </Card>
             </TabsContent>
-
           </Tabs>
         </div>
       );
