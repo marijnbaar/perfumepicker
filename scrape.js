@@ -1,11 +1,13 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
 
 const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
-// Function to get all designer URLs from the designers index page
+// Get all designer URLs from the designers index page
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
   await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -15,7 +17,6 @@ async function getDesignerUrls(page) {
   const designerUrls = [];
   $('a').each((_, el) => {
     const href = $(el).attr('href');
-    // Must start with '/designers/' and not be the index page itself
     if (href && href.startsWith('/designers/') && href !== '/designers/') {
       const absoluteUrl = new URL(href, DESIGNERS_INDEX_URL).href;
       if (!designerUrls.includes(absoluteUrl)) {
@@ -27,38 +28,40 @@ async function getDesignerUrls(page) {
   return designerUrls;
 }
 
-// Function to extract perfume links from a designer page using a flexible approach
-function getPerfumeLinks($, designerUrl) {
-  let links = [];
-  // Primary approach: look for anchors inside any element with class "prefumeHbox"
-  $('.prefumeHbox h3 a').each((_, el) => {
-    links.push($(el).attr('href'));
-  });
-  // Fallback: look for any anchor with href containing '/perfume/'
-  if (links.length === 0) {
-    $('a[href*="/perfume/"]').each((_, el) => {
-      links.push($(el).attr('href'));
-    });
-  }
-  // Convert relative URLs to absolute URLs
-  links = links.map(link =>
-    link.startsWith('http') ? link : new URL(link, designerUrl).href
-  );
-  return Array.from(new Set(links)); // remove duplicates
+// Get the designer slug from a designer URL (e.g., "Marc-Antoine-Barrois")
+function extractDesignerSlug(designerUrl) {
+  const parts = designerUrl.split('/');
+  const lastPart = parts[parts.length - 1];
+  return lastPart.replace('.html', '');
 }
 
-// Function to scrape perfume links from a designer page
+// Extract perfume links from a designer page using a fallback strategy and filtering by designer slug
 async function getPerfumeLinksFromDesigner(page, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
   await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
   const html = await page.content();
   const $ = cheerio.load(html);
-  const perfumeLinks = getPerfumeLinks($, designerUrl);
-  console.log(`  Found ${perfumeLinks.length} perfume links on ${designerUrl}`);
-  return perfumeLinks;
+
+  // Get the designer slug to filter links
+  const designerSlug = extractDesignerSlug(designerUrl);
+  
+  // First, collect all anchors whose href contains "/perfume/"
+  let links = $('a[href*="/perfume/"]').map((i, el) => $(el).attr('href')).get();
+  
+  // Convert any relative URLs to absolute
+  links = links.map(link => link.startsWith('http') ? link : new URL(link, designerUrl).href);
+  
+  // Filter the links so that they include the designer slug
+  links = links.filter(link => link.includes(designerSlug));
+  
+  // Remove duplicates
+  links = Array.from(new Set(links));
+  
+  console.log(`Found ${links.length} perfume links on ${designerUrl} (filtered by designer slug: ${designerSlug}).`);
+  return links;
 }
 
-// Function to scrape details from a single perfume page
+// Scrape details from a single perfume page
 async function scrapePerfumePage(page, perfumeUrl) {
   try {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
@@ -74,7 +77,6 @@ async function scrapePerfumePage(page, perfumeUrl) {
     const topNotes = [];
     const middleNotes = [];
     const baseNotes = [];
-
     $('.noteItem').each((_, elem) => {
       const noteCategory = $(elem).find('.noteCategory').text().trim().toLowerCase();
       const noteName = $(elem).find('.noteName').text().trim();
@@ -105,7 +107,7 @@ async function scrapePerfumePage(page, perfumeUrl) {
   }
 }
 
-// Main function: iterate over all designer pages and then all perfume pages
+// Main function to orchestrate the scraping across all designer pages
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
@@ -116,9 +118,9 @@ async function main() {
 
   // 1. Get all designer URLs from the designers index page.
   const designerUrls = await getDesignerUrls(page);
-
   let allPerfumeLinks = [];
-  // 2. For each designer, get perfume links.
+
+  // 2. For each designer, gather perfume links.
   for (const designerUrl of designerUrls) {
     const links = await getPerfumeLinksFromDesigner(page, designerUrl);
     allPerfumeLinks = allPerfumeLinks.concat(links);
