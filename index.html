@@ -26,9 +26,9 @@
       return (
         <div>
           {React.Children.map(children, child => {
-            if(child.type.displayName === "TabsList") {
+            if (child.type.displayName === "TabsList") {
               return React.cloneElement(child, { activeTab, setActiveTab });
-            } else if(child.type.displayName === "TabsContent") {
+            } else if (child.type.displayName === "TabsContent") {
               return child.props.value === activeTab ? child : null;
             }
             return child;
@@ -37,11 +37,11 @@
       );
     };
     Tabs.displayName = "Tabs";
-    
+
     const TabsList = ({ children, activeTab, setActiveTab }) => (
       <div className="flex gap-4 mb-8">
         {React.Children.map(children, child => {
-          if(child.type.displayName === "TabsTrigger") {
+          if (child.type.displayName === "TabsTrigger") {
             return React.cloneElement(child, { activeTab, setActiveTab });
           }
           return child;
@@ -49,7 +49,7 @@
       </div>
     );
     TabsList.displayName = "TabsList";
-    
+
     const TabsTrigger = ({ value, children, activeTab, setActiveTab, className = "" }) => {
       const active = activeTab === value;
       return (
@@ -62,44 +62,42 @@
       );
     };
     TabsTrigger.displayName = "TabsTrigger";
-    
+
     const TabsContent = ({ value, children }) => <div>{children}</div>;
     TabsContent.displayName = "TabsContent";
-    
+
     // Card-componenten
     const Card = ({ children, className = "" }) => <div className={`${className} border rounded shadow-sm`}>{children}</div>;
     const CardContent = ({ children, className = "" }) => <div className={className}>{children}</div>;
     const CardHeader = ({ children, className = "" }) => <div className={className}>{children}</div>;
     const CardTitle = ({ children, className = "" }) => <h2 className={className}>{children}</h2>;
-    
+
     // Input, Button, Alert-componenten
     const Input = (props) => <input {...props} className={`border p-2 rounded ${props.className || ""}`} />;
     const Button = (props) => <button {...props} className={`px-4 py-2 rounded ${props.className || ""}`}>{props.children}</button>;
     const Alert = ({ children, className = "" }) => <div className={`border p-4 rounded ${className}`}>{children}</div>;
     const AlertDescription = ({ children, className = "" }) => <p className={className}>{children}</p>;
-    
+
     // Dummy icoon-componenten
     const Search = (props) => <span {...props}>🔍</span>;
     const Heart = (props) => <span {...props}>❤️</span>;
     const Bookmark = (props) => <span {...props}>🔖</span>;
     const Droplet = (props) => <span {...props}>💧</span>;
     const Upload = (props) => <span {...props}>⤴️</span>;
-    
+
     /**************************************************
-     * React Code: PerfumeRecommendationApp met Scraped Data
+     * PerfumeCard: Weergeeft een parfum
      **************************************************/
-    
-    // PerfumeCard: Weergeeft een parfum met noten en een actieknop.
     const PerfumeCard = ({ perfume, onAction, actionType = "add" }) => {
+      // Voorbeeld van notencategorisatie (optioneel).
       const categorizeNotes = (notesString) => {
         const categories = {
           topNotes: ['bergamot', 'citrus', 'lavender', 'pepper'],
           middleNotes: ['jasmine', 'rose', 'iris', 'violet'],
           baseNotes: ['vanilla', 'musk', 'sandalwood', 'amber']
         };
-    
-        const notes = notesString.toLowerCase().split(',').map(note => note.trim());
-    
+
+        const notes = (notesString || '').toLowerCase().split(',').map(note => note.trim());
         return {
           top: notes.filter(note => categories.topNotes.some(n => note.includes(n))),
           middle: notes.filter(note => categories.middleNotes.some(n => note.includes(n))),
@@ -111,10 +109,9 @@
           )
         };
       };
-    
+
       const notes = categorizeNotes(perfume.notes || '');
-    
-      // NoteSection: Render een sectie met noten met een icoon en kleur.
+
       const NoteSection = ({ title, notes, color }) => (
         notes.length > 0 && (
           <div className="mb-2">
@@ -135,7 +132,7 @@
           </div>
         )
       );
-    
+
       return (
         <Card className="group transition-all duration-300 hover:shadow-lg overflow-hidden animate__animated animate__fadeInUp mb-4">
           <CardContent className="p-0">
@@ -152,7 +149,8 @@
                   <div className="flex-1">
                     <h3 className="text-xl font-light mb-2 text-teal-800">{perfume.name}</h3>
                     <p className="text-gray-600 mb-4 font-light">{perfume.description}</p>
-                    
+                    <p className="text-xs text-gray-500 italic mb-2">Designer: {perfume.brand || 'Onbekend'}</p>
+
                     <div className="bg-teal-50 rounded-lg p-4">
                       <NoteSection title="Topnoten" notes={notes.top} color="text-yellow-500" />
                       <NoteSection title="Hartnoten" notes={notes.middle} color="text-pink-500" />
@@ -161,7 +159,7 @@
                     </div>
                   </div>
                   <button
-                    onClick={() => onAction(perfume)}
+                    onClick={() => onAction && onAction(perfume)}
                     className="ml-4 p-2 hover:bg-gray-100 rounded-full transition-all duration-300"
                   >
                     <Heart className={`h-5 w-5 ${actionType === "remove" ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
@@ -173,27 +171,37 @@
         </Card>
       );
     };
-    
-    // Hoofdcomponent: PerfumeRecommendationApp
+
+    /**************************************************
+     * Hoofdcomponent: PerfumeRecommendationApp
+     **************************************************/
     const PerfumeRecommendationApp = () => {
-      const [searchQuery, setSearchQuery] = React.useState('');
-      const [uploadedImage, setUploadedImage] = React.useState(null);
-      const [searchResults, setSearchResults] = React.useState([]);
+      // States voor shelf, upload etc.
       const [shelf, setShelf] = React.useState([]);
-      const [isSearching, setIsSearching] = React.useState(false);
-    
-      // Nieuwe state voor gescrapete data
+      const [uploadedImage, setUploadedImage] = React.useState(null);
+
+      // States voor zoekopdrachten
+      const [notesQuery, setNotesQuery] = React.useState('');
+      const [designerQuery, setDesignerQuery] = React.useState('');
+
+      // Gescrapete data
       const [scrapedData, setScrapedData] = React.useState([]);
-    
-      // Data laden uit scrapedData.json (uit de public folder)
+      
+      // Afgeleid: Gesorteerd op naam (voor het overzicht)
+      const alphabeticalData = React.useMemo(() => {
+        // Kopie maken om sort te kunnen uitvoeren zonder originele data te muteren
+        return [...scrapedData].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      }, [scrapedData]);
+
+      // Data laden uit scrapedData.json
       React.useEffect(() => {
         fetch('/scrapedData.json')
           .then(response => response.json())
           .then(data => setScrapedData(data))
           .catch(error => console.error('Fout bij laden scraped data:', error));
       }, []);
-    
-      // Afbeeldingsupload afhandelen en converteren naar base64
+
+      // Handle image upload (optioneel, zoals in je originele code)
       const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -202,88 +210,78 @@
           reader.readAsDataURL(file);
         }
       };
-    
-      // Simuleer reguliere zoekopdracht
-      const performSearch = async () => {
-        setIsSearching(true);
-        setTimeout(() => {
-          setSearchResults([
-            {
-              id: 1,
-              name: 'Chanel No. 5',
-              description: 'Een tijdloze bloemen-aldehyde geur, de essentie van verfijning.',
-              notes: 'aldehydes, jasmijn, roos, ylang-ylang, iris, vanille, sandelhout',
-              imageUrl: "https://via.placeholder.com/128x160"
-            },
-            {
-              id: 2,
-              name: 'Dior Sauvage',
-              description: 'Fris en gedurfd, een kenmerkende geur die een onmiskenbaar spoor achterlaat.',
-              notes: 'bergamot, peper, lavendel, amber, vanille',
-              imageUrl: "https://via.placeholder.com/128x160"
-            },
-            {
-              id: 3,
-              name: 'Le Labo Santal 33',
-              description: 'Een unisex geur die de geest van het Amerikaanse Westen vangt.',
-              notes: 'kardemom, iris, violet, sandelhout, musk, amber',
-              imageUrl: "https://via.placeholder.com/128x160"
-            }
-          ]);
-          setIsSearching(false);
-        }, 1000);
-      };
-    
-      // Voeg een parfum toe aan de shelf
+
+      // Filter op basis van noten
+      const filteredByNotes = React.useMemo(() => {
+        if (!notesQuery) return scrapedData;
+        return scrapedData.filter((perfume) =>
+          (perfume.notes || '').toLowerCase().includes(notesQuery.toLowerCase())
+        );
+      }, [notesQuery, scrapedData]);
+
+      // Filter op basis van designer
+      const filteredByDesigner = React.useMemo(() => {
+        if (!designerQuery) return scrapedData;
+        return scrapedData.filter((perfume) =>
+          (perfume.brand || '').toLowerCase().includes(designerQuery.toLowerCase())
+        );
+      }, [designerQuery, scrapedData]);
+
+      // Shelf management
       const addToShelf = (perfume) => {
-        if (!shelf.find(p => p.id === perfume.id)) {
-          setShelf([...shelf, perfume]);
-        }
+        // Use an 'id' or unique property if available; fallback to name + brand
+        const exists = shelf.some(
+          (p) => p.name === perfume.name && p.brand === perfume.brand
+        );
+        if (!exists) setShelf([...shelf, perfume]);
       };
-    
-      // Verwijder een parfum uit de shelf
       const removeFromShelf = (perfume) => {
-        setShelf(shelf.filter(p => p.id !== perfume.id));
+        setShelf(shelf.filter(p => p.name !== perfume.name || p.brand !== perfume.brand));
       };
-    
+
       return (
         <div className="max-w-4xl mx-auto p-6 bg-gradient-to-b from-teal-50 to-white min-h-screen font-light">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-light mb-2 text-teal-800">Parfum Aanbevelingsapplicatie</h1>
             <p className="text-teal-600">Ontdek nieuwe geuren en bewaar je favorieten</p>
           </div>
-    
-          <Tabs defaultValue="search">
+
+          <Tabs defaultValue="notesSearch">
             <TabsList>
-              <TabsTrigger value="search" className="text-lg font-light">
+              <TabsTrigger value="notesSearch" className="text-lg font-light">
                 <Search className="w-4 h-4 mr-2" />
-                Zoeken
+                Zoek op Noten
+              </TabsTrigger>
+              <TabsTrigger value="designerSearch" className="text-lg font-light">
+                <Bookmark className="w-4 h-4 mr-2" />
+                Zoek op Designer
+              </TabsTrigger>
+              <TabsTrigger value="overview" className="text-lg font-light">
+                Overzicht (Alfabetisch)
               </TabsTrigger>
               <TabsTrigger value="shelf" className="text-lg font-light">
-                <Bookmark className="w-4 h-4 mr-2" />
                 Mijn Shelf
               </TabsTrigger>
-              <TabsTrigger value="scraped" className="text-lg font-light">
-                Scraped Data
-              </TabsTrigger>
             </TabsList>
-    
-            <TabsContent value="search">
-              <Card className="bg-white/50 backdrop-blur-sm">
+
+            {/** TAB 1: Zoeken op noten **/}
+            <TabsContent value="notesSearch">
+              <Card className="bg-white/50 backdrop-blur-sm mb-6">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">
-                    Zoek in de Fragrantica-content
-                  </CardTitle>
+                  <CardTitle className="text-teal-800 font-light">Zoek parfums op noten</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
+                  <div className="flex flex-col sm:flex-row gap-4 mb-4">
                     <Input
-                      placeholder="Voer een zoekterm in (bijv. geur, naam of noten)"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Bijv. 'vanilla', 'rose', 'bergamot'..."
+                      value={notesQuery}
+                      onChange={(e) => setNotesQuery(e.target.value)}
                       className="flex-1"
                     />
-                    <label htmlFor="image-upload" className="cursor-pointer inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded">
+                    <label
+                      htmlFor="image-upload"
+                      className="cursor-pointer inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded"
+                    >
                       <Upload className="w-4 h-4" />
                       <span>Upload Afbeelding</span>
                       <input
@@ -294,48 +292,112 @@
                         className="hidden"
                       />
                     </label>
-                    <Button 
-                      onClick={performSearch}
-                      disabled={(!searchQuery && !uploadedImage) || isSearching}
-                      className="bg-teal-600 hover:bg-teal-700 font-light text-white"
-                    >
-                      {isSearching ? 'Zoeken...' : 'Zoek'}
-                    </Button>
-                  </div>
-    
-                  <div className="space-y-4">
-                    {searchResults.map((perfume) => (
-                      <PerfumeCard
-                        key={perfume.id}
-                        perfume={perfume}
-                        onAction={addToShelf}
-                        actionType="add"
-                      />
-                    ))}
                   </div>
                 </CardContent>
               </Card>
+
+              <div className="space-y-4">
+                {filteredByNotes.map((perfume, index) => (
+                  <PerfumeCard
+                    key={index}
+                    perfume={perfume}
+                    onAction={addToShelf}
+                    actionType="add"
+                  />
+                ))}
+                {filteredByNotes.length === 0 && (
+                  <Alert className="bg-teal-50">
+                    <AlertDescription className="font-light">
+                      Geen parfums gevonden voor de opgegeven noten.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </TabsContent>
-    
+
+            {/** TAB 2: Zoeken op designer **/}
+            <TabsContent value="designerSearch">
+              <Card className="bg-white/50 backdrop-blur-sm mb-6">
+                <CardHeader>
+                  <CardTitle className="text-teal-800 font-light">Zoek parfums op designer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    placeholder="Bijv. 'Dior', 'Chanel', 'Rabanne'..."
+                    value={designerQuery}
+                    onChange={(e) => setDesignerQuery(e.target.value)}
+                    className="mb-4"
+                  />
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                {filteredByDesigner.map((perfume, index) => (
+                  <PerfumeCard
+                    key={index}
+                    perfume={perfume}
+                    onAction={addToShelf}
+                    actionType="add"
+                  />
+                ))}
+                {filteredByDesigner.length === 0 && (
+                  <Alert className="bg-teal-50">
+                    <AlertDescription className="font-light">
+                      Geen parfums gevonden voor deze designer.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </TabsContent>
+
+            {/** TAB 3: Overzicht (alfabetisch) **/}
+            <TabsContent value="overview">
+              <Card className="bg-white/50 backdrop-blur-sm mb-6">
+                <CardHeader>
+                  <CardTitle className="text-teal-800 font-light">Alfabetisch Overzicht</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 font-light">Alle parfums gesorteerd op naam (A-Z).</p>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-4">
+                {alphabeticalData.map((perfume, index) => (
+                  <PerfumeCard
+                    key={index}
+                    perfume={perfume}
+                    onAction={addToShelf}
+                    actionType="add"
+                  />
+                ))}
+                {alphabeticalData.length === 0 && (
+                  <Alert className="bg-teal-50">
+                    <AlertDescription className="font-light">
+                      Geen gescrapete data beschikbaar.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </TabsContent>
+
+            {/** TAB 4: Mijn Shelf **/}
             <TabsContent value="shelf">
               <Card className="bg-white/50 backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">
-                    Mijn Favoriete Parfums
-                  </CardTitle>
+                  <CardTitle className="text-teal-800 font-light">Mijn Favoriete Parfums</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {shelf.length === 0 ? (
                     <Alert className="bg-teal-50">
                       <AlertDescription className="font-light">
-                        Je shelf is leeg. Voeg favorieten toe via de zoekfunctie.
+                        Je shelf is leeg. Voeg favorieten toe via de andere tabs.
                       </AlertDescription>
                     </Alert>
                   ) : (
                     <div className="space-y-4">
-                      {shelf.map((perfume) => (
+                      {shelf.map((perfume, index) => (
                         <PerfumeCard
-                          key={perfume.id}
+                          key={index}
                           perfume={perfume}
                           onAction={removeFromShelf}
                           actionType="remove"
@@ -346,42 +408,12 @@
                 </CardContent>
               </Card>
             </TabsContent>
-    
-            <TabsContent value="scraped">
-              <Card className="bg-white/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-teal-800 font-light">
-                    Gescrapete Data (Fragrantia)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {scrapedData.length === 0 ? (
-                    <Alert className="bg-teal-50">
-                      <AlertDescription className="font-light">
-                        Geen gescrapete data gevonden.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    <div className="space-y-4">
-                      {scrapedData.map((perfume, index) => (
-                        <PerfumeCard
-                          key={index}
-                          perfume={perfume}
-                          onAction={addToShelf}
-                          actionType="add"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-    
+
           </Tabs>
         </div>
       );
     };
-    
+
     // Render de applicatie
     ReactDOM.render(<PerfumeRecommendationApp />, document.getElementById('root'));
   </script>
