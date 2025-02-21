@@ -1,15 +1,19 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const pLimit = require('p-limit');
+puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
-const pLimit = require('p-limit');
-
-puppeteer.use(StealthPlugin());
 
 const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
-// Helper: scroll the page to trigger lazy-loading
+// Helper: delay for a given number of milliseconds
+async function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+// Helper: scroll the page slowly to trigger lazy-loading
 async function scrollPage(page) {
   await page.evaluate(async () => {
     await new Promise(resolve => {
@@ -27,6 +31,11 @@ async function scrollPage(page) {
   });
 }
 
+// Helper: clean a URL by removing any trailing colon.
+function cleanUrl(url) {
+  return url.endsWith(':') ? url.slice(0, -1) : url;
+}
+
 // Get all designer URLs from the designers index page.
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
@@ -36,11 +45,14 @@ async function getDesignerUrls(page) {
   
   const designerUrls = [];
   $('a').each((_, el) => {
-    const href = $(el).attr('href');
-    if (href && href.startsWith('/designers/') && href !== '/designers/') {
-      const absoluteUrl = new URL(href, DESIGNERS_INDEX_URL).href;
-      if (!designerUrls.includes(absoluteUrl)) {
-        designerUrls.push(absoluteUrl);
+    let href = $(el).attr('href');
+    if (href) {
+      href = cleanUrl(href);
+      if (href.startsWith('/designers/') && href !== '/designers/') {
+        const absoluteUrl = new URL(href, DESIGNERS_INDEX_URL).href;
+        if (!designerUrls.includes(absoluteUrl)) {
+          designerUrls.push(absoluteUrl);
+        }
       }
     }
   });
@@ -53,17 +65,25 @@ function getPerfumeLinks($, designerUrl) {
   let links = [];
   // Primary approach: use anchors within elements with class "prefumeHbox"
   $('.prefumeHbox h3 a').each((_, el) => {
-    links.push($(el).attr('href'));
+    let link = $(el).attr('href');
+    if (link) {
+      links.push(cleanUrl(link));
+    }
   });
   // Fallback: scan all <a> tags for '/perfume/' in href.
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
-      links.push($(el).attr('href'));
+      let link = $(el).attr('href');
+      if (link) {
+        links.push(cleanUrl(link));
+      }
     });
   }
   // Convert relative URLs to absolute URLs.
-  links = links.map(link => link.startsWith('http') ? link : new URL(link, designerUrl).href);
-  return Array.from(new Set(links)); // remove duplicates
+  links = links.map(link =>
+    link.startsWith('http') ? link : new URL(link, designerUrl).href
+  );
+  return Array.from(new Set(links)); // Remove duplicates.
 }
 
 // Get perfume links from a single designer page with error handling.
@@ -74,8 +94,7 @@ async function getPerfumeLinksFromDesigner(browser, designerUrl) {
     page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
     await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-    // Allow time for lazy-loading
-    await page.waitFor(2000);
+    await delay(2000);
     await scrollPage(page);
   } catch (err) {
     console.error(`Error navigating to ${designerUrl}:`, err.toString());
@@ -98,7 +117,8 @@ async function scrapePerfumePage(browser, perfumeUrl) {
     page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
     await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-    await page.waitFor('h1', { timeout: 15000 });
+    await page.waitForSelector('h1', { timeout: 15000 });
+    await delay(2000);
     await scrollPage(page);
     const html = await page.content();
     const $ = cheerio.load(html);
@@ -156,11 +176,11 @@ async function main() {
   const designerUrls = await getDesignerUrls(mainPage);
   await mainPage.close();
 
-  // Limit concurrency to avoid overloading the system.
-  const designerLimit = pLimit(5); // up to 5 designer pages concurrently
-  const perfumeLimit = pLimit(10); // up to 10 perfume pages concurrently
+  // Set concurrency limits.
+  const designerLimit = pLimit(5); // Up to 5 designer pages concurrently.
+  const perfumeLimit = pLimit(10); // Up to 10 perfume pages concurrently.
 
-  // 1. For each designer, get perfume links concurrently.
+  // For each designer, get perfume links concurrently.
   const perfumeLinksArrays = await Promise.all(
     designerUrls.map(designerUrl =>
       designerLimit(() => getPerfumeLinksFromDesigner(browser, designerUrl))
@@ -170,7 +190,7 @@ async function main() {
   allPerfumeLinks = Array.from(new Set(allPerfumeLinks));
   console.log(`Total unique perfume links: ${allPerfumeLinks.length}`);
 
-  // 2. For each perfume link, scrape details concurrently.
+  // For each perfume link, scrape details concurrently.
   const allPerfumesData = await Promise.all(
     allPerfumeLinks.map(perfumeUrl =>
       perfumeLimit(() => scrapePerfumePage(browser, perfumeUrl))
@@ -179,7 +199,7 @@ async function main() {
 
   await browser.close();
 
-  // 3. Save all scraped data to a JSON file.
+  // Save data to a JSON file.
   fs.writeFileSync('perfumesData.json', JSON.stringify(allPerfumesData, null, 2));
   console.log('Scraping complete. Data saved in perfumesData.json');
 }
