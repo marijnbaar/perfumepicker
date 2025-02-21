@@ -8,19 +8,18 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 function getPerfumeLinks($, designerUrl) {
   let links = [];
-  // First, try the expected container selector:
-  $('div.cell.text-left.prefumeHbox.px1-box-shadow h3 a[href*="/perfume/"]').each((_, el) => {
+  // Use a simpler selector: any element with class "prefumeHbox" containing an h3 with an anchor.
+  $('.prefumeHbox h3 a').each((_, el) => {
     links.push($(el).attr('href'));
   });
-  // Fallback: if none found, scan all <a> tags that contain '/perfume/'
+  // Fallback: if nothing found, scan all <a> tags for '/perfume/' substring.
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
       links.push($(el).attr('href'));
     });
   }
-  // Convert relative URLs to absolute
+  // Convert relative URLs to absolute URLs based on the designer page URL.
   links = links.map(link => link.startsWith('http') ? link : new URL(link, designerUrl).href);
-  // Remove duplicates
   return Array.from(new Set(links));
 }
 
@@ -30,7 +29,7 @@ async function getDesignerUrls(page) {
   const html = await page.content();
   const $ = cheerio.load(html);
   
-  // Collect all links that point to individual designer pages
+  // Collect all links that point to individual designer pages.
   const designerUrls = [];
   $('a').each((_, el) => {
     const href = $(el).attr('href');
