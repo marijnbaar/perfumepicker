@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const pLimit = (await import('p-limit')).default;
 puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
@@ -38,7 +39,7 @@ function cleanUrl(url) {
 // Get all designer URLs from the designers index page.
 async function getDesignerUrls(page) {
   console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
-  await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 60000 });
+  await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 120000 });
   const html = await page.content();
   const $ = cheerio.load(html);
   
@@ -92,7 +93,10 @@ async function getPerfumeLinksFromDesigner(browser, designerUrl) {
   try {
     page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
-    await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+    // Increase default timeouts.
+    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(120000);
+    await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 120000 });
     await delay(2000);
     await scrollPage(page);
   } catch (err) {
@@ -115,7 +119,10 @@ async function scrapePerfumePage(browser, perfumeUrl) {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
     page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
-    await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(120000);
+    await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 120000 });
+    // Wait for key element
     await page.waitForSelector('h1', { timeout: 15000 });
     await delay(2000);
     await scrollPage(page);
@@ -164,17 +171,18 @@ async function scrapePerfumePage(browser, perfumeUrl) {
 
 // Main function orchestrating the full scraping process.
 async function main() {
-  // Dynamically import p-limit since it's an ES module.
-  const pLimit = (await import('p-limit')).default;
-  
   const browser = await puppeteer.launch({
     headless: true,
+    // Increase protocolTimeout if needed by adding a higher timeout in launch options:
+    protocolTimeout: 120000,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   // Use one page to get the designer URLs.
   const mainPage = await browser.newPage();
   await mainPage.setUserAgent(USER_AGENT);
+  mainPage.setDefaultNavigationTimeout(120000);
+  mainPage.setDefaultTimeout(120000);
   const designerUrls = await getDesignerUrls(mainPage);
   await mainPage.close();
 

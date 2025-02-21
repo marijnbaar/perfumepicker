@@ -1,11 +1,9 @@
 name: Update Scraped Data
 
-# De workflow draait dagelijks om middernacht UTC en kan ook handmatig worden gestart
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  push:
+    branches: [ main ]
   workflow_dispatch:
-    {}
 
 jobs:
   scrape:
@@ -26,7 +24,6 @@ jobs:
       - name: Run Scraper
         run: node scrape.js
 
-      # Deze stap commit en pusht het gewijzigde scrapedData.json-bestand, indien er veranderingen zijn.
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
