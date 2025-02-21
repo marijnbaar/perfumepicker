@@ -27,19 +27,16 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
-      // Import Lucide icons from global variable.
-      const { Heart, Sun, Moon } = window.lucide;
-
-      // ThemeToggle Component
+      // ThemeToggle Component using inline SVGs with data-lucide attributes.
       const ThemeToggle = ({ isDark, onToggle }) => (
         <button
           onClick={onToggle}
           className="fixed top-4 right-4 p-2 rounded-full transition-colors duration-200"
         >
           {isDark ? (
-            <Sun className="w-6 h-6 text-yellow-400" />
+            <svg data-lucide="sun" className="w-6 h-6 text-yellow-400"></svg>
           ) : (
-            <Moon className="w-6 h-6 text-gray-600" />
+            <svg data-lucide="moon" className="w-6 h-6 text-gray-600"></svg>
           )}
         </button>
       );
@@ -74,7 +71,9 @@
               </div>
               <div className="flex-1 pl-4">
                 <h3 className={`text-xl font-medium mb-2 ${textColor}`}>{perfume.name}</h3>
-                <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-4`}>{perfume.description}</p>
+                <p className={`${isDark ? "text-gray-300" : "text-gray-600"} mb-4`}>
+                  {perfume.description}
+                </p>
                 <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} italic mb-2`}>
                   Designer: {perfume.brand || "Unknown"}
                 </p>
@@ -82,9 +81,15 @@
                   <p className={`text-sm font-semibold mb-2 ${isDark ? "text-gray-200" : "text-purple-700"}`}>
                     Notes:
                   </p>
-                  <p className="text-sm mb-1"><strong>Top:</strong> {notes.top.join(", ")}</p>
-                  <p className="text-sm mb-1"><strong>Middle:</strong> {notes.middle.join(", ")}</p>
-                  <p className="text-sm"><strong>Base:</strong> {notes.base.join(", ")}</p>
+                  <p className="text-sm mb-1">
+                    <strong>Top:</strong> {notes.top.join(", ")}
+                  </p>
+                  <p className="text-sm mb-1">
+                    <strong>Middle:</strong> {notes.middle.join(", ")}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Base:</strong> {notes.base.join(", ")}
+                  </p>
                 </div>
               </div>
               {onAction && (
@@ -92,7 +97,7 @@
                   onClick={() => onAction(perfume)}
                   className={`ml-4 p-2 rounded-full transition-all duration-300 ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-100"}`}
                 >
-                  <Heart size={24} className="text-red-500" />
+                  <svg data-lucide="heart" className="text-red-500" width="24" height="24"></svg>
                 </button>
               )}
             </div>
@@ -115,7 +120,7 @@
             : "bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 min-h-screen";
         }, [isDark]);
 
-        // Load scraped data from scrapedData.json.
+        // Load scraped data.
         React.useEffect(() => {
           fetch("scrapedData.json")
             .then(res => {
@@ -124,15 +129,19 @@
               }
               return res.json();
             })
-            .then(data => {
-              console.log("Loaded perfume data:", data);
-              setPerfumes(data);
-            })
+            .then(data => setPerfumes(data))
             .catch(err => {
               console.error("Error loading perfume data:", err);
               setPerfumes([]);
             });
         }, []);
+
+        // Call lucide.createIcons() to replace SVG placeholders with icons.
+        React.useEffect(() => {
+          if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+          }
+        }, [isDark, favorites, searchQuery, perfumes]);
 
         // Filter perfumes by search query.
         const filteredPerfumes = React.useMemo(() => {
@@ -149,11 +158,9 @@
         const toggleFavorite = (perfume) => {
           setFavorites(prev => {
             const exists = prev.some(p => p.name === perfume.name && p.brand === perfume.brand);
-            if (exists) {
-              return prev.filter(p => p.name !== perfume.name || p.brand !== perfume.brand);
-            } else {
-              return [...prev, perfume];
-            }
+            return exists
+              ? prev.filter(p => p.name !== perfume.name || p.brand !== perfume.brand)
+              : [...prev, perfume];
           });
         };
 
@@ -161,10 +168,8 @@
           <div className="max-w-6xl mx-auto p-6">
             <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
 
-            <header className="text-center mb-12 animate__animated animate__fadeIn">
-              <h1 className={`text-4xl font-light mb-4 ${isDark ? "text-gray-100" : "text-purple-800"}`}>
-                Perfume Recommendation App
-              </h1>
+            <header className={`text-center mb-12 animate__animated animate__fadeIn ${isDark ? "text-gray-100" : "text-purple-800"}`}>
+              <h1 className="text-4xl font-light mb-4">Perfume Recommendation App</h1>
               <p className={isDark ? "text-gray-300" : "text-purple-600"}>
                 Discover new fragrances and save your favorites
               </p>
@@ -199,14 +204,14 @@
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-purple-300 outline-none ${
-                      isDark 
-                        ? "bg-gray-700 text-gray-200 border-gray-600" 
-                        : "bg-white text-gray-800 border-gray-300"
+                      isDark ? "bg-gray-700 text-gray-200 border-gray-600" : "bg-white text-gray-800 border-gray-300"
                     }`}
                   />
                 </div>
                 {filteredPerfumes.length === 0 ? (
-                  <p className={isDark ? "text-gray-200" : "text-gray-800"}>No perfumes found.</p>
+                  <p className={isDark ? "text-gray-200" : "text-gray-800"}>
+                    No perfumes found.
+                  </p>
                 ) : (
                   filteredPerfumes.map((perfume, index) => (
                     <PerfumeCard
