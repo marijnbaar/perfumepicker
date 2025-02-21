@@ -1,16 +1,18 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
 const cheerio = require('cheerio');
 const fs = require('fs');
+const pLimit = require('p-limit');
+
+puppeteer.use(StealthPlugin());
 
 const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
-// Helper: scroll the page slowly to trigger lazy-loading
+// Helper: scroll the page to trigger lazy-loading
 async function scrollPage(page) {
   await page.evaluate(async () => {
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       let totalHeight = 0;
       const distance = 100;
       const timer = setInterval(() => {
@@ -46,14 +48,14 @@ async function getDesignerUrls(page) {
   return designerUrls;
 }
 
-// Extract perfume links from a designer page using a flexible approach.
+// Extract perfume links from a designer page using fallback selectors.
 function getPerfumeLinks($, designerUrl) {
   let links = [];
   // Primary approach: use anchors within elements with class "prefumeHbox"
   $('.prefumeHbox h3 a').each((_, el) => {
     links.push($(el).attr('href'));
   });
-  // Fallback: look for any anchor with '/perfume/' in its href.
+  // Fallback: scan all <a> tags for '/perfume/' in href.
   if (links.length === 0) {
     $('a[href*="/perfume/"]').each((_, el) => {
       links.push($(el).attr('href'));
@@ -61,32 +63,40 @@ function getPerfumeLinks($, designerUrl) {
   }
   // Convert relative URLs to absolute URLs.
   links = links.map(link => link.startsWith('http') ? link : new URL(link, designerUrl).href);
-  return Array.from(new Set(links));
+  return Array.from(new Set(links)); // remove duplicates
 }
 
 // Get perfume links from a single designer page with error handling.
-async function getPerfumeLinksFromDesigner(page, designerUrl) {
+async function getPerfumeLinksFromDesigner(browser, designerUrl) {
   console.log(`Scraping designer page: ${designerUrl}`);
+  let page;
   try {
+    page = await browser.newPage();
+    await page.setUserAgent(USER_AGENT);
     await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 60000 });
-    // Wait for extra content to load (using waitFor as fallback for waitForTimeout)
+    // Allow time for lazy-loading
     await page.waitFor(2000);
     await scrollPage(page);
   } catch (err) {
     console.error(`Error navigating to ${designerUrl}:`, err.toString());
+    if (page) await page.close();
     return [];
   }
   const html = await page.content();
   const $ = cheerio.load(html);
   const perfumeLinks = getPerfumeLinks($, designerUrl);
   console.log(`  Found ${perfumeLinks.length} perfume links on ${designerUrl}`);
+  await page.close();
   return perfumeLinks;
 }
 
 // Scrape details from a single perfume page.
-async function scrapePerfumePage(page, perfumeUrl) {
+async function scrapePerfumePage(browser, perfumeUrl) {
+  let page;
   try {
     console.log(`Scraping perfume page: ${perfumeUrl}`);
+    page = await browser.newPage();
+    await page.setUserAgent(USER_AGENT);
     await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 60000 });
     await page.waitFor('h1', { timeout: 15000 });
     await scrollPage(page);
@@ -113,6 +123,7 @@ async function scrapePerfumePage(page, perfumeUrl) {
       }
     });
 
+    await page.close();
     return {
       url: perfumeUrl,
       name,
@@ -127,41 +138,48 @@ async function scrapePerfumePage(page, perfumeUrl) {
     };
   } catch (error) {
     console.error(`Error scraping perfume page ${perfumeUrl}:`, error);
+    if (page) await page.close();
     return { url: perfumeUrl, error: error.toString() };
   }
 }
 
-// Main function to orchestrate the scraping process.
+// Main function orchestrating the full scraping process.
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
-  const page = await browser.newPage();
-  await page.setUserAgent(USER_AGENT);
 
-  // 1. Get all designer URLs.
-  const designerUrls = await getDesignerUrls(page);
-  let allPerfumeLinks = [];
+  // Use one page to get the designer URLs.
+  const mainPage = await browser.newPage();
+  await mainPage.setUserAgent(USER_AGENT);
+  const designerUrls = await getDesignerUrls(mainPage);
+  await mainPage.close();
 
-  // 2. For each designer, get perfume links.
-  for (const designerUrl of designerUrls) {
-    const links = await getPerfumeLinksFromDesigner(page, designerUrl);
-    allPerfumeLinks = allPerfumeLinks.concat(links);
-  }
+  // Limit concurrency to avoid overloading the system.
+  const designerLimit = pLimit(5); // up to 5 designer pages concurrently
+  const perfumeLimit = pLimit(10); // up to 10 perfume pages concurrently
+
+  // 1. For each designer, get perfume links concurrently.
+  const perfumeLinksArrays = await Promise.all(
+    designerUrls.map(designerUrl =>
+      designerLimit(() => getPerfumeLinksFromDesigner(browser, designerUrl))
+    )
+  );
+  let allPerfumeLinks = perfumeLinksArrays.flat();
   allPerfumeLinks = Array.from(new Set(allPerfumeLinks));
   console.log(`Total unique perfume links: ${allPerfumeLinks.length}`);
 
-  const allPerfumesData = [];
-  // 3. For each perfume link, scrape its details.
-  for (const perfumeUrl of allPerfumeLinks) {
-    const perfumeData = await scrapePerfumePage(page, perfumeUrl);
-    allPerfumesData.push(perfumeData);
-  }
+  // 2. For each perfume link, scrape details concurrently.
+  const allPerfumesData = await Promise.all(
+    allPerfumeLinks.map(perfumeUrl =>
+      perfumeLimit(() => scrapePerfumePage(browser, perfumeUrl))
+    )
+  );
 
   await browser.close();
 
-  // 4. Save all scraped data to a JSON file.
+  // 3. Save all scraped data to a JSON file.
   fs.writeFileSync('perfumesData.json', JSON.stringify(allPerfumesData, null, 2));
   console.log('Scraping complete. Data saved in perfumesData.json');
 }

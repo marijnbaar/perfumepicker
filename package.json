@@ -3,6 +3,7 @@
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "openai": "^4.85.3",
+    "p-limit": "^6.2.0",
     "puppeteer": "^24.2.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
