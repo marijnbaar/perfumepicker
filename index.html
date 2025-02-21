@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Perfume Recommendation App</title>
+    <title>Fragrance Haven</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Animate.css -->
@@ -25,9 +25,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- 
-      NOTE: If you see any missing colors in production, you may need 
-      to whitelist them in a Tailwind config. For this demo, it should work 
-      because they appear inline in the HTML.
+      NOTE: If any custom colors don't appear, you may need to
+      safelist them in a Tailwind config. For this demo, they
+      appear inline, so Tailwind should preserve them.
     -->
   </head>
   <body>
@@ -35,7 +35,7 @@
 
     <script type="text/babel">
       // -------------------------------------------------------
-      // Color Palette (from your attached swatch)
+      // Pastel / Earthy Color Palette (from your swatch)
       // -------------------------------------------------------
       // 1) Pastel Green: #D8E097
       // 2) Cream:        #F9F6DF
@@ -43,11 +43,11 @@
       // 4) Peach:        #E8AB8B
       // 5) Terracotta:   #914D41
 
-      // Light Theme: body => #F9F6DF, text => #914D41
-      // Dark Theme:  body => #914D41, text => #F9F6DF
+      // Light Mode: background #F9F6DF, text #914D41
+      // Dark Mode:  background #914D41, text #F9F6DF
 
       // -------------------------------------------------------
-      // Mock Perfume Data (for fallback)
+      // Mock Perfume Data (fallback if JSON fails)
       // -------------------------------------------------------
       const mockPerfumes = [
         {
@@ -61,7 +61,7 @@
             base: ["Vanilla", "Sandalwood", "Patchouli", "White Musk"]
           },
           imageUrl:
-            "https://source.unsplash.com/800x600/?perfume,bottle,rose" // Example from Unsplash
+            "https://source.unsplash.com/800x600/?perfume,bottle,rose"
         },
         {
           name: "Ocean's Whisper",
@@ -91,7 +91,7 @@
         }
       ];
 
-      // Common notes by family (used by "Explore" tab)
+      // Fragrance families & common notes
       const commonNotes = {
         Aromatic: ["Lavender", "Rosemary", "Sage", "Mint", "Thyme"],
         Citrus: ["Bergamot", "Lemon", "Mandarin Orange", "Grapefruit", "Lime"],
@@ -103,8 +103,7 @@
         Spicy: ["Saffron", "Cardamom", "Pink Pepper", "Cinnamon", "Nutmeg"]
       };
 
-      // For Explore tab: each family's default/hover/selected styles
-      // (Just as an example; you can tweak these as you like)
+      // Family colors for "Explore" tab
       const familyColors = {
         Aromatic: {
           bg: "bg-[#CBDCC2]",
@@ -157,12 +156,13 @@
       };
 
       // -------------------------------------------------------
-      // Theme Toggle (Uses inline SVG placeholders for Lucide)
+      // Theme Toggle (Light / Dark) using Lucide placeholders
       // -------------------------------------------------------
       const ThemeToggle = ({ isDark, onToggle }) => (
         <button
           onClick={onToggle}
-          className="fixed top-4 right-4 p-2 rounded-full transition-colors duration-200"
+          className="fixed top-4 right-4 p-2 rounded-full transition-transform duration-200 hover:scale-105"
+          title="Toggle Theme"
         >
           {isDark ? (
             <svg
@@ -183,29 +183,25 @@
       );
 
       // -------------------------------------------------------
-      // Perfume Card (More sophisticated layout)
+      // PerfumeCard
       // -------------------------------------------------------
-      const PerfumeCard = ({ perfume, onAction, actionType = "add", isDark }) => {
-        // Convert notes object or string to top/middle/base arrays
+      const PerfumeCard = ({ perfume, onAction, isFavorite, isDark }) => {
+        // Parse notes into top/middle/base arrays
         const parseNotes = (notesObj) => {
           if (!notesObj) return { top: [], middle: [], base: [] };
-          if (
-            typeof notesObj === "object" &&
-            (notesObj.top || notesObj.middle || notesObj.base)
-          ) {
+          if (typeof notesObj === "object" && (notesObj.top || notesObj.middle || notesObj.base)) {
             return notesObj;
           }
-          // If it's a comma-separated string
+          // If string
           const notesArray = notesObj
             .toLowerCase()
             .split(",")
             .map((n) => n.trim());
           return { top: notesArray, middle: [], base: [] };
         };
-
         const notes = parseNotes(perfume.notes);
 
-        // Card colors
+        // Colors
         const cardBg = isDark ? "bg-[#914D41]" : "bg-white";
         const textColor = isDark ? "text-[#F9F6DF]" : "text-[#914D41]";
         const descColor = isDark ? "text-[#F9F6DF]/80" : "text-[#914D41]/80";
@@ -213,28 +209,38 @@
         const noteText = isDark ? "text-white" : "text-[#914D41]";
         const noteBorder = isDark ? "border-[#F9F6DF]/10" : "border-[#914D41]/10";
 
+        // On hover, we can scale up the card slightly
         return (
           <div
-            className={`${cardBg} ${textColor} rounded-xl shadow-md overflow-hidden relative animate__animated animate__fadeIn`}
+            className={`${cardBg} ${textColor} rounded-xl shadow-md overflow-hidden relative animate__animated animate__fadeIn transform transition-transform hover:scale-105`}
           >
-            {/* Perfume Image Banner */}
+            {/* Image Banner */}
             <div className="relative">
               <img
                 src={perfume.imageUrl}
                 alt={perfume.name}
                 className="w-full h-64 object-cover"
               />
-              {/* Heart (Add/Remove) button */}
+              {/* Favorite Heart Button */}
               {onAction && (
                 <button
                   onClick={() => onAction(perfume)}
-                  className="absolute top-4 right-4 bg-white/70 rounded-full p-2 hover:bg-white shadow-md"
-                  title={actionType === "remove" ? "Remove from favorites" : "Add to favorites"}
+                  className="absolute top-4 right-4 bg-white/70 rounded-full p-2 shadow-md transition-transform hover:scale-110"
+                  title={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
-                  <svg data-lucide="heart" className="text-red-500" width="24" height="24"></svg>
+                  <svg
+                    data-lucide="heart"
+                    width="24"
+                    height="24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill={isFavorite ? "currentColor" : "none"}
+                    className={isFavorite ? "text-red-600" : "text-red-500"}
+                  ></svg>
                 </button>
               )}
             </div>
+
             {/* Card Body */}
             <div className="p-5 space-y-3">
               <h3 className="text-2xl font-semibold">{perfume.name}</h3>
@@ -243,7 +249,7 @@
               </p>
               <p className={`text-base ${descColor}`}>{perfume.description}</p>
 
-              {/* Notes layout: show top/middle/base with small chips */}
+              {/* Notes Section */}
               <div className="mt-4">
                 <div className="mb-2 font-semibold">Fragrance Notes</div>
                 {/* Top Notes */}
@@ -253,7 +259,7 @@
                     {notes.top.map((n, idx) => (
                       <span
                         key={idx}
-                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder}`}
+                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
                       >
                         {n}
                       </span>
@@ -267,7 +273,7 @@
                     {notes.middle.map((n, idx) => (
                       <span
                         key={idx}
-                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder}`}
+                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
                       >
                         {n}
                       </span>
@@ -281,7 +287,7 @@
                     {notes.base.map((n, idx) => (
                       <span
                         key={idx}
-                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder}`}
+                        className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
                       >
                         {n}
                       </span>
@@ -298,7 +304,7 @@
       // FamilySearch (Explore Tab)
       // -------------------------------------------------------
       const FamilySearch = ({ selectedNotes, toggleNote, isDark }) => {
-        const containerBg = isDark ? "bg-[#914D41]" : "bg-[#F9F6DF]";
+        const containerBg = isDark ? "bg-[#914D41]/40" : "bg-[#F9F6DF]";
         const containerText = isDark ? "text-[#F9F6DF]" : "text-[#914D41]";
 
         return (
@@ -319,9 +325,12 @@
                           <button
                             key={note}
                             onClick={() => toggleNote(note)}
-                            className={`px-4 py-1 rounded-full text-sm transition-all duration-300
-                              ${isSelected ? `${selected} text-white` : `${bg} ${text} ${hover}`}
-                            `}
+                            className={`px-4 py-1 rounded-full text-sm transition-all duration-300 
+                              ${
+                                isSelected
+                                  ? `${selected} text-white`
+                                  : `${bg} ${text} ${hover}`
+                              }`}
                           >
                             {note}
                           </button>
@@ -354,7 +363,7 @@
             : "bg-[#F9F6DF] text-[#914D41] min-h-screen";
         }, [isDark]);
 
-        // Fetch data from scrapedData.json or fallback to mock
+        // Fetch data from JSON or fallback to mock
         React.useEffect(() => {
           fetch("./scrapedData.json")
             .then((res) => res.json())
@@ -396,7 +405,7 @@
           });
         }, [perfumes, searchQuery, selectedNotes]);
 
-        // Toggle note in Explore tab
+        // Toggle a note in Explore tab
         const toggleNote = (note) => {
           setSelectedNotes((prev) =>
             prev.includes(note)
@@ -405,7 +414,7 @@
           );
         };
 
-        // Toggle favorite
+        // Toggle a perfume in favorites
         const toggleFavorite = (perfume) => {
           setFavorites((prev) =>
             prev.some((p) => p.name === perfume.name)
@@ -414,18 +423,24 @@
           );
         };
 
+        // Check if a perfume is in favorites
+        const isFavorite = (perfume) =>
+          favorites.some((p) => p.name === perfume.name);
+
         // Active tab style
         const activeTabStyle = "bg-[#E8AB8B] text-white";
 
         return (
           <div className="max-w-7xl mx-auto p-6">
-            {/* Theme Toggle (light/dark) */}
+            {/* Theme Toggle */}
             <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
 
             {/* Header */}
             <header className="text-center mb-12 animate__animated animate__fadeIn">
-              <h1 className="text-4xl font-light mb-4">Perfume Recommendation App</h1>
-              <p className="opacity-80">Discover new fragrances and save your favorites</p>
+              <h1 className="text-4xl font-light mb-4">Fragrance Haven</h1>
+              <p className="opacity-80">
+                Discover new fragrances and save your favorites
+              </p>
             </header>
 
             {/* Nav Tabs */}
@@ -444,8 +459,7 @@
                             : isDark
                             ? "bg-[#914D41]/50 hover:bg-[#914D41]/80 text-[#F9F6DF]"
                             : "bg-white border border-[#914D41]/20 hover:bg-[#CBDCC2] text-[#914D41]"
-                        }
-                      `}
+                        }`}
                     >
                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
@@ -487,11 +501,7 @@
                         key={idx}
                         perfume={perfume}
                         onAction={toggleFavorite}
-                        actionType={
-                          favorites.some((p) => p.name === perfume.name)
-                            ? "remove"
-                            : "add"
-                        }
+                        isFavorite={isFavorite(perfume)}
                         isDark={isDark}
                       />
                     ))}
@@ -503,32 +513,30 @@
             {/* EXPLORE Tab */}
             {activeTab === "explore" && (
               <div className="animate__animated animate__fadeIn">
+                {/* FamilySearch */}
                 <FamilySearch
                   selectedNotes={selectedNotes}
                   toggleNote={toggleNote}
                   isDark={isDark}
                 />
-                {/* Show perfumes that match selected notes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredPerfumes.map((perfume, idx) => (
-                    <PerfumeCard
-                      key={idx}
-                      perfume={perfume}
-                      onAction={toggleFavorite}
-                      actionType={
-                        favorites.some((p) => p.name === perfume.name)
-                          ? "remove"
-                          : "add"
-                      }
-                      isDark={isDark}
-                    />
-                  ))}
-                  {filteredPerfumes.length === 0 && (
-                    <div className="col-span-full text-center opacity-80">
-                      No perfumes match the selected notes.
-                    </div>
-                  )}
-                </div>
+                {/* Perfume Grid (filtered by selected notes) */}
+                {filteredPerfumes.length === 0 ? (
+                  <div className="text-center p-6 rounded-lg opacity-80">
+                    No perfumes match the selected notes.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredPerfumes.map((perfume, idx) => (
+                      <PerfumeCard
+                        key={idx}
+                        perfume={perfume}
+                        onAction={toggleFavorite}
+                        isFavorite={isFavorite(perfume)}
+                        isDark={isDark}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -550,7 +558,7 @@
                         key={idx}
                         perfume={perfume}
                         onAction={toggleFavorite}
-                        actionType="remove"
+                        isFavorite={true}
                         isDark={isDark}
                       />
                     ))}
