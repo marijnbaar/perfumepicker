@@ -23,10 +23,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <!-- Universal Sentence Encoder -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   </head>
   <body>
     <div id="root"></div>
@@ -154,7 +150,7 @@
       };
 
       // -------------------------------------------------------
-      // Theme Toggle (Light / Dark) using Lucide placeholders
+      // Theme Toggle (Light / Dark)
       // -------------------------------------------------------
       const ThemeToggle = ({ isDark, onToggle }) => (
         <button
@@ -190,7 +186,7 @@
           if (typeof notesObj === "object" && (notesObj.top || notesObj.middle || notesObj.base)) {
             return notesObj;
           }
-          // If string
+          // If it's a string
           const notesArray = notesObj
             .toLowerCase()
             .split(",")
@@ -339,6 +335,49 @@
       };
 
       // -------------------------------------------------------
+      // Helper: Call Hugging Face Inference API for Llama Embeddings
+      // -------------------------------------------------------
+      // NOTE: For production, move this to a serverless function to hide your token.
+      const getEmbeddingFromHF = async (text) => {
+        // Replace with your own Hugging Face Inference endpoint & token
+        const HF_API_URL = "https://api-inference.huggingface.co/models/YOUR_ORG/llama-text-embed-v2";
+        const HF_API_TOKEN = "hf_yourSuperSecretToken";
+
+        try {
+          const response = await fetch(HF_API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${HF_API_TOKEN}`
+            },
+            body: JSON.stringify({ inputs: text })
+          });
+          const result = await response.json();
+          // result is typically an array of arrays, so return the first row
+          // Adjust as needed based on your model’s output shape
+          return result?.[0];
+        } catch (error) {
+          console.error("Error fetching embedding:", error);
+          return null;
+        }
+      };
+
+      // -------------------------------------------------------
+      // Cosine Similarity
+      // -------------------------------------------------------
+      const cosineSimilarity = (vecA, vecB) => {
+        let dot = 0,
+          normA = 0,
+          normB = 0;
+        for (let i = 0; i < vecA.length; i++) {
+          dot += vecA[i] * vecB[i];
+          normA += vecA[i] * vecA[i];
+          normB += vecB[i] * vecB[i];
+        }
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+      };
+
+      // -------------------------------------------------------
       // Main App
       // -------------------------------------------------------
       const App = () => {
@@ -348,7 +387,8 @@
         const [perfumes, setPerfumes] = React.useState([]);
         const [selectedNotes, setSelectedNotes] = React.useState([]);
         const [isDark, setIsDark] = React.useState(false);
-        const [embeddingModel, setEmbeddingModel] = React.useState(null);
+
+        // For storing results from semantic search
         const [semanticResults, setSemanticResults] = React.useState(null);
 
         // Body background & text
@@ -376,59 +416,45 @@
           }
         });
 
-        // Load the Universal Sentence Encoder model on mount
-        React.useEffect(() => {
-          async function loadEmbeddingModel() {
-            const model = await use.load();
-            setEmbeddingModel(model);
-            console.log("Embedding model loaded");
-          }
-          loadEmbeddingModel();
-        }, []);
-
-        // Compute embeddings for each perfume once both the model and data are available
+        // Precompute embeddings for all perfumes using Llama-2 text embed v2
+        // This runs once when we first get our perfume list
+        // In a real-world scenario, you'd do this server-side to avoid rate limits and key exposure
         React.useEffect(() => {
           async function computeEmbeddings() {
-            if (embeddingModel && perfumes.length > 0) {
-              const updatedPerfumes = await Promise.all(
-                perfumes.map(async (perfume) => {
-                  // Use name + description as input for embedding
-                  const inputText = perfume.name + " " + perfume.description;
-                  const embeddings = await embeddingModel.embed([inputText]);
-                  const embeddingArray = await embeddings.array();
-                  return { ...perfume, embedding: embeddingArray[0] };
-                })
-              );
-              setPerfumes(updatedPerfumes);
-              console.log("Computed embeddings for perfumes");
+            if (!perfumes.length) return;
+            const updatedPerfumes = [];
+            for (const perfume of perfumes) {
+              // If we already have an embedding, skip
+              if (perfume.embedding) {
+                updatedPerfumes.push(perfume);
+                continue;
+              }
+              // Use name + description
+              const textForEmbedding = `${perfume.name} ${perfume.description}`;
+              const embedding = await getEmbeddingFromHF(textForEmbedding);
+              updatedPerfumes.push({ ...perfume, embedding });
             }
+            setPerfumes(updatedPerfumes);
           }
           computeEmbeddings();
-        }, [embeddingModel, perfumes.length]);
+        }, [perfumes.length]);
 
-        // Cosine similarity function
-        const cosineSimilarity = (vecA, vecB) => {
-          let dot = 0, normA = 0, normB = 0;
-          for (let i = 0; i < vecA.length; i++) {
-            dot += vecA[i] * vecB[i];
-            normA += vecA[i] * vecA[i];
-            normB += vecB[i] * vecB[i];
-          }
-          return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-        };
-
-        // Handle semantic search when user clicks the "Semantic Search" button
+        // Handle semantic search
         const handleSemanticSearch = async () => {
-          if (!embeddingModel || !searchQuery) return;
-          const embeddings = await embeddingModel.embed([searchQuery]);
-          const queryEmbedding = (await embeddings.array())[0];
-          // Filter perfumes that have an embedding computed
-          const results = (perfumes || mockPerfumes)
-            .filter((p) => p.embedding)
+          if (!searchQuery) return;
+          // Get query embedding
+          const queryEmbedding = await getEmbeddingFromHF(searchQuery);
+          if (!queryEmbedding) return;
+
+          // Filter out any perfumes without embeddings
+          const results = perfumes
+            .filter((p) => p.embedding && Array.isArray(p.embedding))
             .map((p) => ({
               ...p,
               score: cosineSimilarity(queryEmbedding, p.embedding)
             }));
+
+          // Sort by descending score
           results.sort((a, b) => b.score - a.score);
           setSemanticResults(results);
         };
@@ -440,6 +466,8 @@
               ? prev.filter((n) => n !== note)
               : [...prev, note]
           );
+          // Clear semantic results
+          setSemanticResults(null);
         };
 
         // Toggle a perfume in favorites
@@ -455,7 +483,7 @@
         const isFavorite = (perfume) =>
           favorites.some((p) => p.name === perfume.name);
 
-        // Default filtering (by name/brand and selected notes)
+        // Basic filter by name/brand + selected notes
         const filteredPerfumes = React.useMemo(() => {
           const data = perfumes.length ? perfumes : mockPerfumes;
           return data.filter((perfume) => {
@@ -477,7 +505,8 @@
           });
         }, [perfumes, searchQuery, selectedNotes]);
 
-        // Decide which results to display: semantic search takes precedence if available
+        // Decide which list to display
+        // If we have semanticResults, that takes priority
         const resultsToDisplay = semanticResults || filteredPerfumes;
 
         return (
