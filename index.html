@@ -1,685 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta
-      charset="UTF-8"
-    />
-    <title>
-      Fragrance
-      Haven
-    </title>
+    <meta charset="UTF-8" />
+    <title>Fragrance Haven</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Animate.css -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <!-- React and ReactDOM -->
-    <script
-      src="https://unpkg.com/react@17/umd/react.development.js"
-      crossorigin
-    ></script>
-    <script
-      src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
-      crossorigin
-    ></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <!-- Babel for in-browser JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
   <body>
-    <div
-      id="root"
-    ></div>
-    <script
-      type="text/babel"
-    >
+    <div id="root"></div>
+    <script type="text/babel">
       // -------------------------------------------------------
-      // Pastel / Earthy Color Palette
+      // Updated Color Palette & Styling Constants
       // -------------------------------------------------------
-      // 1) Pastel Green: #D8E097
-      // 2) Cream:        #F9F6DF
-      // 3) Sage:         #CBDCC2
-      // 4) Peach:        #E8AB8B
-      // 5) Terracotta:   #914D41
-      // Light Mode: background #F9F6DF, text #914D41
-      // Dark Mode:  background #914D41, text #F9F6DF
+      // Colors:
+      // - Deep Purple: #483248
+      // - Lavender: #E6E6FA
+      // - Sage Green: #9CAF88
+      // - Gold: #D4AF37
+      // - Rich Cream: #FCF5E5
+      //
+      // Light Mode: background #FCF5E5, text #483248
+      // Dark Mode: background #483248, text #FCF5E5
 
       // -------------------------------------------------------
-      // Mock Perfume Data (fallback if JSON fails)
+      // Mock Perfume Data (fallback)
       // -------------------------------------------------------
-      const mockPerfumes =
-        [
-          {
-            name: "Midnight Rose Dreams",
-            brand:
-              "Maison de Parfum",
-            description:
-              "A sophisticated blend of dark roses and precious woods, enhanced with sparkling bergamot and warm vanilla.",
-            notes: {
-              top: [
-                "Bergamot",
-                "Pink Pepper",
-                "Black Currant",
-              ],
-              middle:
-                [
-                  "Damascus Rose",
-                  "Bulgarian Rose",
-                  "Peony",
-                ],
-              base: [
-                "Vanilla",
-                "Sandalwood",
-                "Patchouli",
-                "White Musk",
-              ],
-            },
-            imageUrl:
-              "https://source.unsplash.com/800x600/?perfume,bottle,rose",
+      const mockPerfumes = [
+        {
+          name: "Midnight Rose Dreams",
+          brand: "Maison de Parfum",
+          description:
+            "A sophisticated blend of dark roses and precious woods, enhanced with sparkling bergamot and warm vanilla.",
+          notes: {
+            top: ["Bergamot", "Pink Pepper", "Black Currant"],
+            middle: ["Damascus Rose", "Bulgarian Rose", "Peony"],
+            base: ["Vanilla", "Sandalwood", "Patchouli", "White Musk"],
           },
-          {
-            name: "Ocean's Whisper",
-            brand:
-              "Azure Scents",
-            description:
-              "A fresh aquatic fragrance that captures the essence of sea breeze and coastal flowers.",
-            notes: {
-              top: [
-                "Sea Notes",
-                "Mandarin Orange",
-                "Ozonic Notes",
-              ],
-              middle:
-                [
-                  "Salt",
-                  "Water Lily",
-                  "Jasmine",
-                ],
-              base: [
-                "Driftwood",
-                "Ambergris",
-                "Cedar",
-              ],
-            },
-            imageUrl:
-              "https://source.unsplash.com/800x600/?perfume,ocean,aquatic",
+          imageUrl: "https://source.unsplash.com/800x600/?perfume,rose",
+        },
+        {
+          name: "Ocean's Whisper",
+          brand: "Azure Scents",
+          description:
+            "A fresh aquatic fragrance that captures the essence of sea breeze and coastal flowers.",
+          notes: {
+            top: ["Sea Notes", "Mandarin Orange", "Ozonic Notes"],
+            middle: ["Salt", "Water Lily", "Jasmine"],
+            base: ["Driftwood", "Ambergris", "Cedar"],
           },
-          {
-            name: "Velvet Oud",
-            brand:
-              "Eastern Luxe",
-            description:
-              "An opulent oriental fragrance featuring precious oud wood and exotic spices.",
-            notes: {
-              top: [
-                "Saffron",
-                "Cardamom",
-                "Black Pepper",
-              ],
-              middle:
-                [
-                  "Oud",
-                  "Rose",
-                  "Incense",
-                ],
-              base: [
-                "Amber",
-                "Vanilla",
-                "Labdanum",
-              ],
-            },
-            imageUrl:
-              "https://source.unsplash.com/800x600/?perfume,oud,oriental",
+          imageUrl: "https://source.unsplash.com/800x600/?perfume,ocean",
+        },
+        {
+          name: "Velvet Oud",
+          brand: "Eastern Luxe",
+          description:
+            "An opulent oriental fragrance featuring precious oud wood and exotic spices.",
+          notes: {
+            top: ["Saffron", "Cardamom", "Black Pepper"],
+            middle: ["Oud", "Rose", "Incense"],
+            base: ["Amber", "Vanilla", "Labdanum"],
           },
-        ];
+          imageUrl: "https://source.unsplash.com/800x600/?perfume,oud",
+        },
+      ];
 
       // -------------------------------------------------------
       // Fragrance Families & Common Notes
       // -------------------------------------------------------
-      const commonNotes =
-        {
-          Aromatic:
-            [
-              "Lavender",
-              "Rosemary",
-              "Sage",
-              "Mint",
-              "Thyme",
-            ],
-          Citrus: [
-            "Bergamot",
-            "Lemon",
-            "Mandarin Orange",
-            "Grapefruit",
-            "Lime",
-          ],
-          Oriental:
-            [
-              "Vanilla",
-              "Amber",
-              "Oud",
-              "Myrrh",
-              "Frankincense",
-            ],
-          Woody: [
-            "Sandalwood",
-            "Cedar",
-            "Patchouli",
-            "Vetiver",
-            "Pine",
-          ],
-          Floral: [
-            "Rose",
-            "Jasmine",
-            "Lily",
-            "Iris",
-            "Peony",
-          ],
-          Fresh: [
-            "Sea Notes",
-            "Green Notes",
-            "Ozonic Notes",
-            "Rain",
-            "Air",
-          ],
-          Fruity: [
-            "Apple",
-            "Peach",
-            "Black Currant",
-            "Pear",
-            "Plum",
-          ],
-          Spicy: [
-            "Saffron",
-            "Cardamom",
-            "Pink Pepper",
-            "Cinnamon",
-            "Nutmeg",
-          ],
-        };
+      const commonNotes = {
+        Aromatic: ["Lavender", "Rosemary", "Sage", "Mint", "Thyme"],
+        Citrus: ["Bergamot", "Lemon", "Mandarin Orange", "Grapefruit", "Lime"],
+        Oriental: ["Vanilla", "Amber", "Oud", "Myrrh", "Frankincense"],
+        Woody: ["Sandalwood", "Cedar", "Patchouli", "Vetiver", "Pine"],
+        Floral: ["Rose", "Jasmine", "Lily", "Iris", "Peony"],
+        Fresh: ["Sea Notes", "Green Notes", "Ozonic Notes", "Rain", "Air"],
+        Fruity: ["Apple", "Peach", "Black Currant", "Pear", "Plum"],
+        Spicy: ["Saffron", "Cardamom", "Pink Pepper", "Cinnamon", "Nutmeg"],
+      };
 
       // -------------------------------------------------------
-      // Family Colors for "Explore" Tab
+      // Family Colors for "Explore" Tab (using new palette)
       // -------------------------------------------------------
-      const familyColors =
-        {
-          Aromatic:
-            {
-              bg: "bg-[#CBDCC2]",
-              text: "text-[#914D41]",
-              hover:
-                "hover:bg-[#E8AB8B]",
-              selected:
-                "bg-[#D8E097]",
-            },
-          Citrus: {
-            bg: "bg-[#E8AB8B]",
-            text: "text-white",
-            hover:
-              "hover:bg-[#914D41]",
-            selected:
-              "bg-[#D8E097]",
-          },
-          Oriental:
-            {
-              bg: "bg-[#914D41]",
-              text: "text-[#F9F6DF]",
-              hover:
-                "hover:bg-[#E8AB8B]",
-              selected:
-                "bg-[#CBDCC2]",
-            },
-          Woody: {
-            bg: "bg-[#D8E097]",
-            text: "text-[#914D41]",
-            hover:
-              "hover:bg-[#CBDCC2]",
-            selected:
-              "bg-[#E8AB8B]",
-          },
-          Floral: {
-            bg: "bg-[#CBDCC2]",
-            text: "text-[#914D41]",
-            hover:
-              "hover:bg-[#D8E097]",
-            selected:
-              "bg-[#E8AB8B]",
-          },
-          Fresh: {
-            bg: "bg-[#F9F6DF]",
-            text: "text-[#914D41]",
-            hover:
-              "hover:bg-[#CBDCC2]",
-            selected:
-              "bg-[#E8AB8B]",
-          },
-          Fruity: {
-            bg: "bg-[#E8AB8B]",
-            text: "text-white",
-            hover:
-              "hover:bg-[#914D41]",
-            selected:
-              "bg-[#CBDCC2]",
-          },
-          Spicy: {
-            bg: "bg-[#914D41]",
-            text: "text-[#F9F6DF]",
-            hover:
-              "hover:bg-[#E8AB8B]",
-            selected:
-              "bg-[#D8E097]",
-          },
-        };
+      const familyColors = {
+        Aromatic: {
+          bg: "bg-[#9CAF88]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#D4AF37]",
+          selected: "bg-[#E6E6FA]",
+        },
+        Citrus: {
+          bg: "bg-[#D4AF37]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#9CAF88]",
+          selected: "bg-[#E6E6FA]",
+        },
+        Oriental: {
+          bg: "bg-[#483248]",
+          text: "text-[#FCF5E5]",
+          hover: "hover:bg-[#D4AF37]",
+          selected: "bg-[#9CAF88]",
+        },
+        Woody: {
+          bg: "bg-[#9CAF88]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#E6E6FA]",
+          selected: "bg-[#D4AF37]",
+        },
+        Floral: {
+          bg: "bg-[#E6E6FA]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#9CAF88]",
+          selected: "bg-[#D4AF37]",
+        },
+        Fresh: {
+          bg: "bg-[#FCF5E5]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#E6E6FA]",
+          selected: "bg-[#D4AF37]",
+        },
+        Fruity: {
+          bg: "bg-[#D4AF37]",
+          text: "text-[#483248]",
+          hover: "hover:bg-[#483248]",
+          selected: "bg-[#9CAF88]",
+        },
+        Spicy: {
+          bg: "bg-[#483248]",
+          text: "text-[#FCF5E5]",
+          hover: "hover:bg-[#D4AF37]",
+          selected: "bg-[#E6E6FA]",
+        },
+      };
 
       // -------------------------------------------------------
-      // Theme Toggle Component
+      // ThemeToggle Component
       // -------------------------------------------------------
-      const ThemeToggle =
-        ({
-          isDark,
-          onToggle,
-        }) => (
-          <button
-            onClick={
-              onToggle
-            }
-            className="fixed top-4 right-4 p-2 rounded-full transition-transform duration-200 hover:scale-105"
-            title="Toggle Theme"
-          >
-            {isDark ? (
-              <svg
-                data-lucide="sun"
-                className="w-6 h-6 text-[#E8AB8B]"
-                width="24"
-                height="24"
-              ></svg>
-            ) : (
-              <svg
-                data-lucide="moon"
-                className="w-6 h-6 text-[#914D41]"
-                width="24"
-                height="24"
-              ></svg>
-            )}
-          </button>
-        );
+      const ThemeToggle = ({ isDark, onToggle }) => (
+        <button
+          onClick={onToggle}
+          className="fixed top-4 right-4 p-2 rounded-full transition-transform duration-200 hover:scale-105"
+          title="Toggle Theme"
+        >
+          {isDark ? (
+            <svg data-lucide="sun" className="w-6 h-6 text-[#D4AF37]" width="24" height="24"></svg>
+          ) : (
+            <svg data-lucide="moon" className="w-6 h-6 text-[#483248]" width="24" height="24"></svg>
+          )}
+        </button>
+      );
 
       // -------------------------------------------------------
       // PerfumeCard Component
       // -------------------------------------------------------
-      const PerfumeCard =
-        ({
-          perfume,
-          onAction,
-          isFavorite,
-          isDark,
-        }) => {
-          const parseNotes =
-            (
-              notesObj,
-            ) => {
-              if (
-                !notesObj
-              )
-                return {
-                  top: [],
-                  middle:
-                    [],
-                  base: [],
-                };
-              if (
-                typeof notesObj ===
-                  "object" &&
-                (notesObj.top ||
-                  notesObj.middle ||
-                  notesObj.base)
-              ) {
-                return notesObj;
-              }
-              const notesArray =
-                notesObj
-                  .toLowerCase()
-                  .split(
-                    ",",
-                  )
-                  .map(
-                    (
-                      n,
-                    ) =>
-                      n.trim(),
-                  );
-              return {
-                top: notesArray,
-                middle:
-                  [],
-                base: [],
-              };
-            };
-          const notes =
-            parseNotes(
-              perfume.notes,
-            );
+      const PerfumeCard = ({ perfume, onAction, isFavorite, isDark }) => {
+        const parseNotes = (notesObj) => {
+          if (!notesObj)
+            return { top: [], middle: [], base: [] };
+          if (typeof notesObj === "object" && (notesObj.top || notesObj.middle || notesObj.base)) {
+            return notesObj;
+          }
+          const notesArray = notesObj.toLowerCase().split(",").map((n) => n.trim());
+          return { top: notesArray, middle: [], base: [] };
+        };
+        const notes = parseNotes(perfume.notes);
 
-          const cardBg =
-            isDark
-              ? "bg-[#914D41]"
-              : "bg-white";
-          const textColor =
-            isDark
-              ? "text-[#F9F6DF]"
-              : "text-[#914D41]";
-          const descColor =
-            isDark
-              ? "text-[#F9F6DF]/80"
-              : "text-[#914D41]/80";
-          const noteBg =
-            isDark
-              ? "bg-[#E8AB8B]"
-              : "bg-[#CBDCC2]";
-          const noteText =
-            isDark
-              ? "text-white"
-              : "text-[#914D41]";
-          const noteBorder =
-            isDark
-              ? "border-[#F9F6DF]/10"
-              : "border-[#914D41]/10";
+        // Card styling: light cards have a white background; dark cards use Deep Purple
+        const cardBg = isDark ? "bg-[#483248]" : "bg-white";
+        const textColor = isDark ? "text-[#FCF5E5]" : "text-[#483248]";
+        const descColor = isDark ? "text-[#FCF5E5]/80" : "text-[#483248]/80";
+        const noteBg = isDark ? "bg-[#D4AF37]" : "bg-[#9CAF88]";
+        const noteText = isDark ? "text-[#483248]" : "text-[#FCF5E5]";
+        const noteBorder = isDark ? "border-[#FCF5E5]/10" : "border-[#483248]/10";
 
-          return (
-            <div
-              className={`${cardBg} ${textColor} rounded-xl shadow-md overflow-hidden relative animate__animated animate__fadeIn transform transition-transform hover:scale-105`}
-            >
-              <div className="relative">
-                <img
-                  src={
-                    perfume.imageUrl
-                  }
-                  alt={
-                    perfume.name
-                  }
-                  className="w-full h-64 object-cover"
-                />
-                {onAction && (
-                  <button
-                    onClick={() =>
-                      onAction(
-                        perfume,
-                      )
-                    }
-                    className="absolute top-4 right-4 bg-white/70 rounded-full p-2 shadow-md transition-transform hover:scale-110"
-                    title={
-                      isFavorite
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
-                  >
-                    <svg
-                      data-lucide="heart"
-                      width="24"
-                      height="24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill={
-                        isFavorite
-                          ? "currentColor"
-                          : "none"
-                      }
-                      className={
-                        isFavorite
-                          ? "text-red-600"
-                          : "text-red-500"
-                      }
-                    ></svg>
-                  </button>
-                )}
-              </div>
-              <div className="p-5 space-y-3">
-                <h3 className="text-2xl font-semibold">
-                  {
-                    perfume.name
-                  }
-                </h3>
-                <p className="text-sm uppercase tracking-wide font-medium opacity-75">
-                  {perfume.brand ||
-                    "Unknown"}
-                </p>
-                <p
-                  className={`text-base ${descColor}`}
+        return (
+          <div
+            className={`${cardBg} ${textColor} rounded-xl shadow-md overflow-hidden relative animate__animated animate__fadeIn transform transition-transform hover:scale-105`}
+          >
+            <div className="relative">
+              <img
+                src={perfume.imageUrl || "https://source.unsplash.com/800x600/?perfume"}
+                alt={perfume.name}
+                className="w-full h-64 object-cover"
+              />
+              {onAction && (
+                <button
+                  onClick={() => onAction(perfume)}
+                  className="absolute top-4 right-4 bg-white/70 rounded-full p-2 shadow-md transition-transform hover:scale-110"
+                  title={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
-                  {
-                    perfume.description
-                  }
-                </p>
-                <div className="mt-4">
-                  <div className="mb-2 font-semibold">
-                    Fragrance
-                    Notes
-                  </div>
-                  {notes
-                    .top
-                    .length >
-                    0 && (
-                    <div className="mb-2">
-                      <span className="text-sm font-medium mr-2 opacity-80">
-                        Top:
-                      </span>
-                      {notes.top.map(
-                        (
-                          n,
-                          idx,
-                        ) => (
-                          <span
-                            key={
-                              idx
-                            }
-                            className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
-                          >
-                            {
-                              n
-                            }
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  )}
-                  {notes
-                    .middle
-                    .length >
-                    0 && (
-                    <div className="mb-2">
-                      <span className="text-sm font-medium mr-2 opacity-80">
-                        Middle:
-                      </span>
-                      {notes.middle.map(
-                        (
-                          n,
-                          idx,
-                        ) => (
-                          <span
-                            key={
-                              idx
-                            }
-                            className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
-                          >
-                            {
-                              n
-                            }
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  )}
-                  {notes
-                    .base
-                    .length >
-                    0 && (
-                    <div className="mb-2">
-                      <span className="text-sm font-medium mr-2 opacity-80">
-                        Base:
-                      </span>
-                      {notes.base.map(
-                        (
-                          n,
-                          idx,
-                        ) => (
-                          <span
-                            key={
-                              idx
-                            }
-                            className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}
-                          >
-                            {
-                              n
-                            }
-                          </span>
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill={isFavorite ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className={isFavorite ? "text-red-600" : "text-red-500"}
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+              )}
             </div>
-          );
-        };
-
-      // -------------------------------------------------------
-      // FamilySearch Component
-      // -------------------------------------------------------
-      const FamilySearch =
-        ({
-          selectedNotes,
-          toggleNote,
-          isDark,
-        }) => {
-          const containerBg =
-            isDark
-              ? "bg-[#914D41]/40"
-              : "bg-[#F9F6DF]";
-          const containerText =
-            isDark
-              ? "text-[#F9F6DF]"
-              : "text-[#914D41]";
-          return (
-            <div
-              className={`animate__animated animate__fadeIn p-6 rounded-xl shadow-sm mb-8 ${containerBg} ${containerText}`}
-            >
-              <h3 className="text-xl font-semibold mb-4">
-                Explore
-                by
-                Fragrance
-                Family
-              </h3>
-              <div className="space-y-6">
-                {Object.entries(
-                  commonNotes,
-                ).map(
-                  ([
-                    family,
-                    notes,
-                  ]) => {
-                    const {
-                      bg,
-                      text,
-                      hover,
-                      selected,
-                    } =
-                      familyColors[
-                        family
-                      ] ||
-                      {};
-                    return (
-                      <div
-                        key={
-                          family
-                        }
-                        className="space-y-2"
-                      >
-                        <h4 className="text-lg font-medium">
-                          {
-                            family
-                          }
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {notes.map(
-                            (
-                              note,
-                            ) => {
-                              const isSelected =
-                                selectedNotes.includes(
-                                  note,
-                                );
-                              return (
-                                <button
-                                  key={
-                                    note
-                                  }
-                                  onClick={() =>
-                                    toggleNote(
-                                      note,
-                                    )
-                                  }
-                                  className={`px-4 py-1 rounded-full text-sm transition-all duration-300 ${
-                                    isSelected
-                                      ? `${selected} text-white`
-                                      : `${bg} ${text} ${hover}`
-                                  }`}
-                                >
-                                  {
-                                    note
-                                  }
-                                </button>
-                              );
-                            },
-                          )}
-                        </div>
-                      </div>
-                    );
-                  },
+            <div className="p-5 space-y-3">
+              <h3 className="text-2xl font-semibold">{perfume.name}</h3>
+              <p className="text-sm uppercase tracking-wide font-medium opacity-75">{perfume.brand || "Unknown"}</p>
+              <p className={`text-base ${descColor}`}>{perfume.description}</p>
+              <div className="mt-4">
+                <div className="mb-2 font-semibold">Fragrance Notes</div>
+                {notes.top.length > 0 && (
+                  <div className="mb-2">
+                    <span className="text-sm font-medium mr-2 opacity-80">Top:</span>
+                    {notes.top.map((n, idx) => (
+                      <span key={idx} className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}>
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {notes.middle.length > 0 && (
+                  <div className="mb-2">
+                    <span className="text-sm font-medium mr-2 opacity-80">Middle:</span>
+                    {notes.middle.map((n, idx) => (
+                      <span key={idx} className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}>
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {notes.base.length > 0 && (
+                  <div className="mb-2">
+                    <span className="text-sm font-medium mr-2 opacity-80">Base:</span>
+                    {notes.base.map((n, idx) => (
+                      <span key={idx} className={`inline-block px-2 py-1 text-xs rounded-full mr-1 mb-1 ${noteBg} ${noteText} border ${noteBorder} transition-transform hover:scale-105`}>
+                        {n}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-          );
-        };
+          </div>
+        );
+      };
 
       // -------------------------------------------------------
-      // Helper: Call Serverless Function for Embeddings
+      // FamilySearch Component (for Explore Tab)
       // -------------------------------------------------------
-      async function getEmbeddingFromServerless(
-        text,
-      ) {
+      const FamilySearch = ({ selectedNotes, toggleNote, isDark }) => {
+        // Container background: in dark mode we use a translucent Deep Purple; in light mode, use a subtle Rich Cream shade.
+        const containerBg = isDark ? "bg-[#483248]/40" : "bg-[#FCF5E5]";
+        const containerText = isDark ? "text-[#FCF5E5]" : "text-[#483248]";
+        return (
+          <div className={`animate__animated animate__fadeIn p-6 rounded-xl shadow-sm mb-8 ${containerBg} ${containerText}`}>
+            <h3 className="text-xl font-semibold mb-4">Explore by Fragrance Family</h3>
+            <div className="space-y-6">
+              {Object.entries(commonNotes).map(([family, notes]) => {
+                const { bg, text, hover, selected } = familyColors[family] || {};
+                return (
+                  <div key={family} className="space-y-2">
+                    <h4 className="text-lg font-medium">{family}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {notes.map((note) => {
+                        const isSelected = selectedNotes.includes(note);
+                        return (
+                          <button
+                            key={note}
+                            onClick={() => toggleNote(note)}
+                            className={`px-4 py-1 rounded-full text-sm transition-all duration-300 ${
+                              isSelected ? `${selected} text-white` : `${bg} ${text} ${hover}`
+                            }`}
+                          >
+                            {note}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
+      // -------------------------------------------------------
+      // Helper: Serverless Embedding Function Call
+      // -------------------------------------------------------
+      async function getEmbeddingFromServerless(text) {
         try {
-          const response =
-            await fetch(
-              "/.netlify/functions/getLlamaEmbedding",
-              {
-                method:
-                  "POST",
-                headers:
-                  {
-                    "Content-Type":
-                      "application/json",
-                  },
-                body: JSON.stringify(
-                  {
-                    text,
-                  },
-                ),
-              },
-            );
-          const data =
-            await response.json();
-          return (
-            data.embedding ||
-            null
-          );
+          const response = await fetch("/.netlify/functions/getLlamaEmbedding", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          const data = await response.json();
+          return data.embedding || null;
         } catch (error) {
-          console.error(
-            "Error calling serverless embedding function:",
-            error,
-          );
+          console.error("Error calling serverless embedding function:", error);
           return null;
         }
       }
@@ -687,668 +314,246 @@
       // -------------------------------------------------------
       // Cosine Similarity Function
       // -------------------------------------------------------
-      const cosineSimilarity =
-        (
-          vecA,
-          vecB,
-        ) => {
-          let dot = 0,
-            normA = 0,
-            normB = 0;
-          for (
-            let i = 0;
-            i <
-            vecA.length;
-            i++
-          ) {
-            dot +=
-              vecA[
-                i
-              ] *
-              vecB[
-                i
-              ];
-            normA +=
-              vecA[
-                i
-              ] *
-              vecA[
-                i
-              ];
-            normB +=
-              vecB[
-                i
-              ] *
-              vecB[
-                i
-              ];
-          }
-          return (
-            dot /
-            (Math.sqrt(
-              normA,
-            ) *
-              Math.sqrt(
-                normB,
-              ))
-          );
-        };
+      const cosineSimilarity = (vecA, vecB) => {
+        let dot = 0,
+          normA = 0,
+          normB = 0;
+        for (let i = 0; i < vecA.length; i++) {
+          dot += vecA[i] * vecB[i];
+          normA += vecA[i] * vecA[i];
+          normB += vecB[i] * vecB[i];
+        }
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+      };
 
       // -------------------------------------------------------
       // Main App Component
       // -------------------------------------------------------
-      const App =
-        () => {
-          const [
-            activeTab,
-            setActiveTab,
-          ] =
-            React.useState(
-              "home",
-            );
-          const [
-            favorites,
-            setFavorites,
-          ] =
-            React.useState(
-              [],
-            );
-          const [
-            searchQuery,
-            setSearchQuery,
-          ] =
-            React.useState(
-              "",
-            );
-          const [
-            perfumes,
-            setPerfumes,
-          ] =
-            React.useState(
-              [],
-            );
-          const [
-            selectedNotes,
-            setSelectedNotes,
-          ] =
-            React.useState(
-              [],
-            );
-          const [
-            isDark,
-            setIsDark,
-          ] =
-            React.useState(
-              false,
-            );
-          const [
-            semanticResults,
-            setSemanticResults,
-          ] =
-            React.useState(
-              null,
-            );
+      const App = () => {
+        const [activeTab, setActiveTab] = React.useState("home");
+        const [favorites, setFavorites] = React.useState([]);
+        const [searchQuery, setSearchQuery] = React.useState("");
+        const [perfumes, setPerfumes] = React.useState([]);
+        const [selectedNotes, setSelectedNotes] = React.useState([]);
+        const [isDark, setIsDark] = React.useState(false);
+        const [semanticResults, setSemanticResults] = React.useState(null);
 
-          React.useEffect(() => {
-            document.body.className =
-              isDark
-                ? "bg-[#914D41] text-[#F9F6DF] min-h-screen"
-                : "bg-[#F9F6DF] text-[#914D41] min-h-screen";
-          }, [
-            isDark,
-          ]);
+        // Set body background and text based on theme
+        React.useEffect(() => {
+          document.body.className = isDark
+            ? "bg-[#483248] text-[#FCF5E5] min-h-screen"
+            : "bg-[#FCF5E5] text-[#483248] min-h-screen";
+        }, [isDark]);
 
-          React.useEffect(() => {
-            fetch(
-              "./scrapedData.json",
-            )
-              .then(
-                (
-                  res,
-                ) =>
-                  res.json(),
-              )
-              .then(
-                (
-                  data,
-                ) =>
-                  setPerfumes(
-                    data,
-                  ),
-              )
-              .catch(
-                (
-                  err,
-                ) => {
-                  console.error(
-                    "Error loading perfume data:",
-                    err,
-                  );
-                  setPerfumes(
-                    mockPerfumes,
-                  );
-                },
-              );
-          }, []);
+        // Load perfume data from JSON (fallback to mock data)
+        React.useEffect(() => {
+          fetch("./scrapedData.json")
+            .then((res) => res.json())
+            .then((data) => setPerfumes(data))
+            .catch((err) => {
+              console.error("Error loading perfume data:", err);
+              setPerfumes(mockPerfumes);
+            });
+        }, []);
 
-          React.useEffect(
-            () => {
-              if (
-                window.lucide &&
-                window
-                  .lucide
-                  .createIcons
-              ) {
-                window.lucide.createIcons();
+        // Initialize Lucide icons after render
+        React.useEffect(() => {
+          if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+          }
+        });
+
+        // Precompute embeddings for each perfume via the serverless endpoint
+        React.useEffect(() => {
+          async function computeEmbeddings() {
+            if (!perfumes.length) return;
+            const updatedPerfumes = [];
+            for (const perfume of perfumes) {
+              if (perfume.embedding) {
+                updatedPerfumes.push(perfume);
+                continue;
               }
-            },
-          );
-
-          // Precompute embeddings for each perfume via the serverless endpoint
-          React.useEffect(() => {
-            async function computeEmbeddings() {
-              if (
-                !perfumes.length
-              )
-                return;
-              const updatedPerfumes =
-                [];
-              for (const perfume of perfumes) {
-                if (
-                  perfume.embedding
-                ) {
-                  updatedPerfumes.push(
-                    perfume,
-                  );
-                  continue;
-                }
-                const textForEmbedding = `${perfume.name} ${perfume.description}`;
-                const embedding =
-                  await getEmbeddingFromServerless(
-                    textForEmbedding,
-                  );
-                updatedPerfumes.push(
-                  {
-                    ...perfume,
-                    embedding,
-                  },
-                );
-              }
-              setPerfumes(
-                updatedPerfumes,
-              );
+              const textForEmbedding = `${perfume.name} ${perfume.description}`;
+              const embedding = await getEmbeddingFromServerless(textForEmbedding);
+              updatedPerfumes.push({ ...perfume, embedding });
             }
-            computeEmbeddings();
-          }, [
-            perfumes.length,
-          ]);
+            setPerfumes(updatedPerfumes);
+          }
+          computeEmbeddings();
+        }, [perfumes.length]);
 
-          const handleSemanticSearch =
-            async () => {
-              if (
-                !searchQuery
-              )
-                return;
-              const queryEmbedding =
-                await getEmbeddingFromServerless(
-                  searchQuery,
-                );
-              if (
-                !queryEmbedding
-              )
-                return;
-              const results =
-                perfumes
-                  .filter(
-                    (
-                      p,
-                    ) =>
-                      p.embedding &&
-                      Array.isArray(
-                        p.embedding,
-                      ),
-                  )
-                  .map(
-                    (
-                      p,
-                    ) => ({
-                      ...p,
-                      score:
-                        cosineSimilarity(
-                          queryEmbedding,
-                          p.embedding,
-                        ),
-                    }),
-                  );
-              results.sort(
-                (
-                  a,
-                  b,
-                ) =>
-                  b.score -
-                  a.score,
-              );
-              setSemanticResults(
-                results,
-              );
-            };
+        // Handle semantic search
+        const handleSemanticSearch = async () => {
+          if (!searchQuery) return;
+          const queryEmbedding = await getEmbeddingFromServerless(searchQuery);
+          if (!queryEmbedding) return;
+          const results = perfumes
+            .filter((p) => p.embedding && Array.isArray(p.embedding))
+            .map((p) => ({ ...p, score: cosineSimilarity(queryEmbedding, p.embedding) }));
+          results.sort((a, b) => b.score - a.score);
+          setSemanticResults(results);
+        };
 
-          const toggleNote =
-            (
-              note,
-            ) => {
-              setSelectedNotes(
-                (
-                  prev,
-                ) =>
-                  prev.includes(
-                    note,
-                  )
-                    ? prev.filter(
-                        (
-                          n,
-                        ) =>
-                          n !==
-                          note,
-                      )
-                    : [
-                        ...prev,
-                        note,
-                      ],
-              );
-              setSemanticResults(
-                null,
-              );
-            };
+        // Toggle a note for filtering and clear semantic results on change
+        const toggleNote = (note) => {
+          setSelectedNotes((prev) =>
+            prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note]
+          );
+          setSemanticResults(null);
+        };
 
-          const toggleFavorite =
-            (
-              perfume,
-            ) => {
-              setFavorites(
-                (
-                  prev,
-                ) =>
-                  prev.some(
-                    (
-                      p,
-                    ) =>
-                      p.name ===
-                      perfume.name,
-                  )
-                    ? prev.filter(
-                        (
-                          p,
-                        ) =>
-                          p.name !==
-                          perfume.name,
-                      )
-                    : [
-                        ...prev,
-                        perfume,
-                      ],
-              );
-            };
-
-          const isFavorite =
-            (
-              perfume,
-            ) =>
-              favorites.some(
-                (
-                  p,
-                ) =>
-                  p.name ===
-                  perfume.name,
-              );
-
-          const filteredPerfumes =
-            React.useMemo(() => {
-              const data =
-                perfumes.length
-                  ? perfumes
-                  : mockPerfumes;
-              return data.filter(
-                (
-                  perfume,
-                ) => {
-                  const q =
-                    searchQuery.toLowerCase();
-                  const matchesSearch =
-                    perfume.name
-                      .toLowerCase()
-                      .includes(
-                        q,
-                      ) ||
-                    (perfume.brand &&
-                      perfume.brand
-                        .toLowerCase()
-                        .includes(
-                          q,
-                        ));
-                  const matchesNotes =
-                    selectedNotes.length ===
-                      0 ||
-                    selectedNotes.some(
-                      (
-                        note,
-                      ) => {
-                        const allNotes =
-                          [
-                            ...(perfume
-                              .notes
-                              ?.top ||
-                              []),
-                            ...(perfume
-                              .notes
-                              ?.middle ||
-                              []),
-                            ...(perfume
-                              .notes
-                              ?.base ||
-                              []),
-                          ].map(
-                            (
-                              n,
-                            ) =>
-                              n.toLowerCase(),
-                          );
-                        return allNotes.includes(
-                          note.toLowerCase(),
-                        );
-                      },
-                    );
-                  return (
-                    matchesSearch &&
-                    matchesNotes
-                  );
-                },
-              );
-            }, [
-              perfumes,
-              searchQuery,
-              selectedNotes,
-            ]);
-
-          const resultsToDisplay =
-            semanticResults ||
-            filteredPerfumes;
-
-          return (
-            <div className="max-w-7xl mx-auto p-6">
-              <ThemeToggle
-                isDark={
-                  isDark
-                }
-                onToggle={() =>
-                  setIsDark(
-                    !isDark,
-                  )
-                }
-              />
-              <header className="text-center mb-12 animate__animated animate__fadeIn">
-                <h1 className="text-4xl font-light mb-4">
-                  Fragrance
-                  Haven
-                </h1>
-                <p className="opacity-80">
-                  Discover
-                  new
-                  fragrances
-                  and
-                  save
-                  your
-                  favorites
-                </p>
-              </header>
-              <nav className="mb-8">
-                <div className="flex justify-center gap-4 mb-8">
-                  {[
-                    "home",
-                    "explore",
-                    "favorites",
-                  ].map(
-                    (
-                      tab,
-                    ) => {
-                      const isActive =
-                        activeTab ===
-                        tab;
-                      return (
-                        <button
-                          key={
-                            tab
-                          }
-                          onClick={() => {
-                            setActiveTab(
-                              tab,
-                            );
-                            setSemanticResults(
-                              null,
-                            );
-                          }}
-                          className={`px-6 py-3 rounded-full transition-all duration-300 ${
-                            isActive
-                              ? "bg-[#E8AB8B] text-white"
-                              : isDark
-                              ? "bg-[#914D41]/50 hover:bg-[#914D41]/80 text-[#F9F6DF]"
-                              : "bg-white border border-[#914D41]/20 hover:bg-[#CBDCC2] text-[#914D41]"
-                          }`}
-                        >
-                          {tab
-                            .charAt(
-                              0,
-                            )
-                            .toUpperCase() +
-                            tab.slice(
-                              1,
-                            )}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-              </nav>
-              {activeTab ===
-                "home" && (
-                <div className="animate__animated animate__fadeIn">
-                  <div
-                    className={`p-4 rounded-xl shadow-sm mb-8 ${
-                      isDark
-                        ? "bg-[#914D41]/40"
-                        : "bg-white"
-                    }`}
-                  >
-                    <input
-                      type="text"
-                      placeholder="Search by name or brand..."
-                      value={
-                        searchQuery
-                      }
-                      onChange={(
-                        e,
-                      ) => {
-                        setSearchQuery(
-                          e
-                            .target
-                            .value,
-                        );
-                        setSemanticResults(
-                          null,
-                        );
-                      }}
-                      className={`w-full p-3 rounded-lg focus:ring-2 outline-none ${
-                        isDark
-                          ? "bg-[#914D41]/40 text-[#F9F6DF] placeholder-[#F9F6DF]/50 focus:ring-[#E8AB8B]"
-                          : "bg-[#F9F6DF] text-[#914D41] placeholder-[#914D41]/50 focus:ring-[#E8AB8B]"
-                      }`}
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <button
-                      onClick={
-                        handleSemanticSearch
-                      }
-                      className="px-4 py-2 bg-[#E8AB8B] text-white rounded-full shadow-md hover:bg-[#914D41] transition-colors"
-                    >
-                      Semantic
-                      Search
-                    </button>
-                  </div>
-                  {resultsToDisplay.length ===
-                  0 ? (
-                    <p className="opacity-80">
-                      No
-                      perfumes
-                      found
-                      matching
-                      your
-                      criteria.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {resultsToDisplay.map(
-                        (
-                          perfume,
-                          idx,
-                        ) => (
-                          <PerfumeCard
-                            key={
-                              idx
-                            }
-                            perfume={
-                              perfume
-                            }
-                            onAction={
-                              toggleFavorite
-                            }
-                            isFavorite={isFavorite(
-                              perfume,
-                            )}
-                            isDark={
-                              isDark
-                            }
-                          />
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-              {activeTab ===
-                "explore" && (
-                <div className="animate__animated animate__fadeIn">
-                  <FamilySearch
-                    selectedNotes={
-                      selectedNotes
-                    }
-                    toggleNote={
-                      toggleNote
-                    }
-                    isDark={
-                      isDark
-                    }
-                  />
-                  {resultsToDisplay.length ===
-                  0 ? (
-                    <div className="text-center p-6 rounded-lg opacity-80">
-                      No
-                      perfumes
-                      match
-                      the
-                      selected
-                      notes.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {resultsToDisplay.map(
-                        (
-                          perfume,
-                          idx,
-                        ) => (
-                          <PerfumeCard
-                            key={
-                              idx
-                            }
-                            perfume={
-                              perfume
-                            }
-                            onAction={
-                              toggleFavorite
-                            }
-                            isFavorite={isFavorite(
-                              perfume,
-                            )}
-                            isDark={
-                              isDark
-                            }
-                          />
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-              {activeTab ===
-                "favorites" && (
-                <div className="animate__animated animate__fadeIn">
-                  {favorites.length ===
-                  0 ? (
-                    <div
-                      className={`text-center p-8 rounded-lg ${
-                        isDark
-                          ? "bg-[#914D41]/40"
-                          : "bg-white"
-                      } opacity-80`}
-                    >
-                      <p>
-                        Your
-                        favorites
-                        list
-                        is
-                        empty.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {favorites.map(
-                        (
-                          perfume,
-                          idx,
-                        ) => (
-                          <PerfumeCard
-                            key={
-                              idx
-                            }
-                            perfume={
-                              perfume
-                            }
-                            onAction={
-                              toggleFavorite
-                            }
-                            isFavorite={
-                              true
-                            }
-                            isDark={
-                              isDark
-                            }
-                          />
-                        ),
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+        // Toggle favorites list
+        const toggleFavorite = (perfume) => {
+          setFavorites((prev) =>
+            prev.some((p) => p.name === perfume.name)
+              ? prev.filter((p) => p.name !== perfume.name)
+              : [...prev, perfume]
           );
         };
 
-      ReactDOM.render(
-        <App />,
-        document.getElementById(
-          "root",
-        ),
-      );
+        const isFavorite = (perfume) => favorites.some((p) => p.name === perfume.name);
+
+        // Filter perfumes based on search query and selected notes
+        const filteredPerfumes = React.useMemo(() => {
+          const data = perfumes.length ? perfumes : mockPerfumes;
+          return data.filter((perfume) => {
+            const q = searchQuery.toLowerCase();
+            const matchesSearch =
+              perfume.name.toLowerCase().includes(q) ||
+              (perfume.brand && perfume.brand.toLowerCase().includes(q));
+            const matchesNotes =
+              selectedNotes.length === 0 ||
+              selectedNotes.some((note) => {
+                const allNotes = [
+                  ...(perfume.notes?.top || []),
+                  ...(perfume.notes?.middle || []),
+                  ...(perfume.notes?.base || []),
+                ].map((n) => n.toLowerCase());
+                return allNotes.includes(note.toLowerCase());
+              });
+            return matchesSearch && matchesNotes;
+          });
+        }, [perfumes, searchQuery, selectedNotes]);
+
+        const resultsToDisplay = semanticResults || filteredPerfumes;
+
+        return (
+          <div className="max-w-7xl mx-auto p-6">
+            <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
+            <header className="text-center mb-12 animate__animated animate__fadeIn">
+              <h1 className="text-4xl font-light mb-4">Fragrance Haven</h1>
+              <p className="opacity-80">Discover new fragrances and save your favorites</p>
+            </header>
+            <nav className="mb-8">
+              <div className="flex justify-center gap-4 mb-8">
+                {["home", "explore", "favorites"].map((tab) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => {
+                        setActiveTab(tab);
+                        setSemanticResults(null);
+                      }}
+                      className={`px-6 py-3 rounded-full transition-all duration-300 ${
+                        isActive
+                          ? "bg-[#D4AF37] text-white"
+                          : isDark
+                          ? "bg-[#483248]/50 hover:bg-[#483248]/80 text-[#FCF5E5]"
+                          : "bg-white border border-[#483248]/20 hover:bg-[#E6E6FA] text-[#483248]"
+                      }`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+            {activeTab === "home" && (
+              <div className="animate__animated animate__fadeIn">
+                <div className={`p-4 rounded-xl shadow-sm mb-8 ${isDark ? "bg-[#483248]/40" : "bg-white"}`}>
+                  <input
+                    type="text"
+                    placeholder="Search by name or brand..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSemanticResults(null);
+                    }}
+                    className={`w-full p-3 rounded-lg focus:ring-2 outline-none ${
+                      isDark
+                        ? "bg-[#483248]/40 text-[#FCF5E5] placeholder-[#FCF5E5]/50 focus:ring-[#D4AF37]"
+                        : "bg-[#FCF5E5] text-[#483248] placeholder-[#483248]/50 focus:ring-[#D4AF37]"
+                    }`}
+                  />
+                </div>
+                <div className="mb-8">
+                  <button
+                    onClick={handleSemanticSearch}
+                    className="px-4 py-2 bg-[#D4AF37] text-white rounded-full shadow-md hover:bg-[#483248] transition-colors"
+                  >
+                    Semantic Search
+                  </button>
+                </div>
+                {resultsToDisplay.length === 0 ? (
+                  <p className="opacity-80">No perfumes found matching your criteria.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {resultsToDisplay.map((perfume, idx) => (
+                      <PerfumeCard
+                        key={idx}
+                        perfume={perfume}
+                        onAction={toggleFavorite}
+                        isFavorite={isFavorite(perfume)}
+                        isDark={isDark}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {activeTab === "explore" && (
+              <div className="animate__animated animate__fadeIn">
+                <FamilySearch selectedNotes={selectedNotes} toggleNote={toggleNote} isDark={isDark} />
+                {resultsToDisplay.length === 0 ? (
+                  <div className="text-center p-6 rounded-lg opacity-80">
+                    No perfumes match the selected notes.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {resultsToDisplay.map((perfume, idx) => (
+                      <PerfumeCard
+                        key={idx}
+                        perfume={perfume}
+                        onAction={toggleFavorite}
+                        isFavorite={isFavorite(perfume)}
+                        isDark={isDark}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {activeTab === "favorites" && (
+              <div className="animate__animated animate__fadeIn">
+                {favorites.length === 0 ? (
+                  <div className={`text-center p-8 rounded-lg ${isDark ? "bg-[#483248]/40" : "bg-white"} opacity-80`}>
+                    <p>Your favorites list is empty.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {favorites.map((perfume, idx) => (
+                      <PerfumeCard key={idx} perfume={perfume} onAction={toggleFavorite} isFavorite={true} isDark={isDark} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      ReactDOM.render(<App />, document.getElementById("root"));
     </script>
   </body>
 </html>
