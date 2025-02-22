@@ -1,11 +1,13 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
 // Example: Rabanne's designer page – replace if needed.
 const DESIGNER_URL = 'https://www.fragrantica.com/designers/Rabanne.html';
 
-// A realistic User-Agent helps bypass some anti-scraping measures.
+// A realistic User-Agent.
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
 // Helper delay function.
@@ -47,19 +49,22 @@ async function main() {
   console.log(`Found ${perfumeLinks.length} perfume links on the designer page.`);
 
   // 3. Process each perfume page to scrape details.
-  // We'll process in batches and append the batch to the JSON file.
   const batchSize = 5;
-  const resultsFile = 'perfumesData.json';
+  const resultsFile = path.join(process.cwd(), 'perfumesData.json');
   let batch = [];
   let totalScraped = 0;
 
-  // Ensure the output file exists (or create a blank array).
+  // Create file if it doesn't exist.
   if (!fs.existsSync(resultsFile)) {
     fs.writeFileSync(resultsFile, JSON.stringify([], null, 2));
   }
 
-  // Define a helper function to append a batch.
+  // Helper function to append a batch to the JSON file.
   function appendDataToJsonFile(filePath, dataArray) {
+    if (!dataArray || dataArray.length === 0) {
+      console.log('No new data to write in this batch.');
+      return;
+    }
     let existingData = [];
     try {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
@@ -73,9 +78,26 @@ async function main() {
     const combined = existingData.concat(dataArray);
     fs.writeFileSync(filePath, JSON.stringify(combined, null, 2));
     console.log(`Successfully wrote ${combined.length} items to ${filePath}`);
-    // Log a snippet of the file for debugging.
     const check = fs.readFileSync(filePath, 'utf-8');
     console.log('File snippet:', check.substring(0, 200));
+  }
+
+  // Helper function to commit and push the updated JSON file.
+  function commitFile(filePath, message) {
+    try {
+      // Configure Git user (adjust as needed).
+      execSync('git config --global user.email "action@github.com"');
+      execSync('git config --global user.name "GitHub Action"');
+      // Stage the file.
+      execSync(`git add ${filePath}`);
+      // Commit changes.
+      execSync(`git commit -m "${message}"`);
+      // Push changes.
+      execSync('git push');
+      console.log(`Committed and pushed ${filePath} with message: "${message}"`);
+    } catch (err) {
+      console.error('Error during git commit/push:', err);
+    }
   }
 
   // Loop through each perfume link sequentially.
@@ -124,25 +146,27 @@ async function main() {
       batch.push(perfumeData);
       totalScraped++;
 
-      // Flush batch to file if reached batch size.
+      // Flush batch to file if batch size is reached.
       if (batch.length >= batchSize) {
+        console.log('Batch data:', batch);
         appendDataToJsonFile(resultsFile, batch);
+        commitFile(resultsFile, `Update perfumesData.json - batch ending at ${totalScraped}`);
         console.log(`Flushed batch of ${batch.length} perfumes to JSON. Total so far: ${totalScraped}`);
-        batch = []; // Reset batch.
+        batch = [];
       }
 
-      // Optional: add a short delay between pages to be polite.
+      // Optional: delay between pages.
       await delay(1000);
     } catch (error) {
       console.error(`Error scraping perfume page ${perfumeUrl}:`, error);
-      // Record error info for this URL.
       batch.push({ url: perfumeUrl, error: error.toString() });
     }
   }
 
-  // Flush any remaining results in the final batch.
+  // Flush any remaining data.
   if (batch.length > 0) {
     appendDataToJsonFile(resultsFile, batch);
+    commitFile(resultsFile, `Final update perfumesData.json - total ${totalScraped + batch.length}`);
     totalScraped += batch.length;
     console.log(`Flushed final batch of ${batch.length} perfumes to JSON. Total so far: ${totalScraped}`);
   }
