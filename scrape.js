@@ -1,84 +1,237 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const fs = require('fs');
 const cheerio = require('cheerio');
 
 puppeteer.use(StealthPlugin());
 
-const SEARCH_URL = 'https://www.fragrantica.com/search';
-const SHOW_MORE_SELECTOR = 'button.button';
-const PERFUME_LINK_SELECTOR = '.cell.card.fr-news-box .card-section a[href]';
+async function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
 
-(async () => {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+async function scrollPage(page) {
+  await page.evaluate(async () => {
+    await new Promise(resolve => {
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+        if (totalHeight >= document.body.scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 200);
+    });
   });
-  const page = await browser.newPage();
-  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 120000 });
+}
 
-  // ... handleCookiePopup() if needed ...
+function cleanUrl(url) {
+  return url.endsWith(':') ? url.slice(0, -1) : url;
+}
 
-  // Wait for "Show more results" button
-  try {
-    await page.waitForSelector(SHOW_MORE_SELECTOR, { timeout: 10000 });
-    console.log('"Show more results" button is present.');
-  } catch (err) {
-    console.log('No "Show more results" button found:', err.message);
-  }
+const DESIGNERS_INDEX_URL = 'https://www.fragrantica.com/designers/';
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
-  // Attempt multiple clicks
-  while (true) {
-    const loadMoreBtn = await page.$(SHOW_MORE_SELECTOR);
-    if (!loadMoreBtn) {
-      console.log('No more "Show more results" button. Stopping.');
-      break;
-    }
-
-    // Screenshot for debugging
-    await page.screenshot({ path: 'debug_before_click.png', fullPage: true });
-
-    // Scroll it into view
-    await loadMoreBtn.evaluate(btn => btn.scrollIntoView());
-    await page.waitForTimeout(500);
-
-    // Try direct Puppeteer click
-    try {
-      await loadMoreBtn.click();
-      console.log('Clicked the button via Puppeteer.');
-    } catch (clickErr) {
-      console.log('Puppeteer click failed, trying JS evaluate:', clickErr.message);
-
-      // If that fails, do a direct JS click
-      await page.evaluate(() => {
-        const btn = document.querySelector('button.button');
-        if (btn) btn.click();
-      });
-    }
-
-    // Wait a bit for new results to load
-    await page.waitForTimeout(3000);
-  }
-
-  // Collect final HTML
+async function getDesignerUrls(page) {
+  console.log(`Visiting designers index: ${DESIGNERS_INDEX_URL}`);
+  await page.goto(DESIGNERS_INDEX_URL, { waitUntil: 'networkidle2', timeout: 120000 });
   const html = await page.content();
   const $ = cheerio.load(html);
-
-  // Extract links
-  let perfumeLinks = [];
-  $(PERFUME_LINK_SELECTOR).each((_, el) => {
+  
+  const designerUrls = [];
+  $('a').each((_, el) => {
     let href = $(el).attr('href');
     if (href) {
-      if (href.endsWith(':')) href = href.slice(0, -1);
-      if (!href.startsWith('http')) {
-        href = new URL(href, SEARCH_URL).href;
+      href = cleanUrl(href);
+      if (href.startsWith('/designers/') && href !== '/designers/') {
+        const absoluteUrl = new URL(href, DESIGNERS_INDEX_URL).href;
+        if (!designerUrls.includes(absoluteUrl)) {
+          designerUrls.push(absoluteUrl);
+        }
       }
-      perfumeLinks.push(href);
     }
   });
+  console.log(`Found ${designerUrls.length} designer URLs.`);
+  return designerUrls;
+}
 
-  perfumeLinks = [...new Set(perfumeLinks)];
-  console.log('Perfume links found:', perfumeLinks);
+function getPerfumeLinks($, designerUrl) {
+  let links = [];
+  // Primary approach: use anchors within elements with class "prefumeHbox"
+  $('.prefumeHbox h3 a').each((_, el) => {
+    let link = $(el).attr('href');
+    if (link) {
+      links.push(cleanUrl(link));
+    }
+  });
+  // Fallback: scan all <a> tags for '/perfume/' in href.
+  if (links.length === 0) {
+    $('a[href*="/perfume/"]').each((_, el) => {
+      let link = $(el).attr('href');
+      if (link) {
+        links.push(cleanUrl(link));
+      }
+    });
+  }
+  // Convert relative URLs to absolute URLs.
+  links = links.map(link =>
+    link.startsWith('http') ? link : new URL(link, designerUrl).href
+  );
+  return Array.from(new Set(links)); // Remove duplicates.
+}
 
+async function getPerfumeLinksFromDesigner(browser, designerUrl) {
+  console.log(`Scraping designer page: ${designerUrl}`);
+  let page;
+  try {
+    page = await browser.newPage();
+    await page.setUserAgent(USER_AGENT);
+    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(120000);
+    await page.goto(designerUrl, { waitUntil: 'networkidle2', timeout: 120000 });
+    await delay(2000);
+    await scrollPage(page);
+  } catch (err) {
+    console.error(`Error navigating to ${designerUrl}:`, err.toString());
+    if (page) await page.close();
+    return [];
+  }
+  const html = await page.content();
+  const $ = cheerio.load(html);
+  const perfumeLinks = getPerfumeLinks($, designerUrl);
+  console.log(`  Found ${perfumeLinks.length} perfume links on ${designerUrl}`);
   await page.close();
+  return perfumeLinks;
+}
+
+async function scrapePerfumePage(browser, perfumeUrl) {
+  let page;
+  try {
+    console.log(`Scraping perfume page: ${perfumeUrl}`);
+    page = await browser.newPage();
+    await page.setUserAgent(USER_AGENT);
+    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(120000);
+    await page.goto(perfumeUrl, { waitUntil: 'networkidle2', timeout: 120000 });
+    await page.waitForSelector('h1', { timeout: 15000 });
+    await delay(2000);
+    await scrollPage(page);
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    const name = $('h1').first().text().trim();
+    const brand = $('.breadcrumb a').eq(1).text().trim();
+    const thumbnail = $('#mainpicbox > img').attr('src') || '';
+    const description = $('#info .content').first().text().trim();
+
+    const topNotes = [];
+    const middleNotes = [];
+    const baseNotes = [];
+    $('.noteItem').each((_, elem) => {
+      const noteCategory = $(elem).find('.noteCategory').text().trim().toLowerCase();
+      const noteName = $(elem).find('.noteName').text().trim();
+      if (noteCategory.includes('top')) {
+        topNotes.push(noteName);
+      } else if (noteCategory.includes('heart') || noteCategory.includes('middle')) {
+        middleNotes.push(noteName);
+      } else if (noteCategory.includes('base')) {
+        baseNotes.push(noteName);
+      }
+    });
+
+    await page.close();
+    return {
+      url: perfumeUrl,
+      name,
+      brand,
+      thumbnail,
+      description,
+      notes: {
+        top: topNotes,
+        middle: middleNotes,
+        base: baseNotes
+      }
+    };
+  } catch (error) {
+    console.error(`Error scraping perfume page ${perfumeUrl}:`, error);
+    if (page) await page.close();
+    return { url: perfumeUrl, error: error.toString() };
+  }
+}
+
+// Function to append batch data to JSON file (reading previous data if exists)
+function appendDataToJsonFile(filePath, dataArray) {
+  let existingData = [];
+  if (fs.existsSync(filePath)) {
+    try {
+      existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    } catch (e) {
+      console.error('Error reading existing JSON file, starting fresh.');
+      existingData = [];
+    }
+  }
+  const combined = existingData.concat(dataArray);
+  fs.writeFileSync(filePath, JSON.stringify(combined, null, 2));
+}
+
+async function main() {
+  const { default: pLimit } = await import('p-limit');
+  
+  const browser = await puppeteer.launch({
+    headless: true,
+    protocolTimeout: 120000,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  // Use one page to get the designer URLs.
+  const mainPage = await browser.newPage();
+  await mainPage.setUserAgent(USER_AGENT);
+  mainPage.setDefaultNavigationTimeout(120000);
+  mainPage.setDefaultTimeout(120000);
+  const designerUrls = await getDesignerUrls(mainPage);
+  await mainPage.close();
+
+  console.log("Designer URLs:", designerUrls);
+
+  // Set concurrency limits.
+  const designerLimit = pLimit(5);
+  const perfumeLimit = pLimit(10);
+
+  // For each designer, get perfume links concurrently.
+  const perfumeLinksArrays = await Promise.all(
+    designerUrls.map(designerUrl =>
+      designerLimit(() => getPerfumeLinksFromDesigner(browser, designerUrl))
+    )
+  );
+  let allPerfumeLinks = perfumeLinksArrays.flat();
+  allPerfumeLinks = Array.from(new Set(allPerfumeLinks));
+  console.log(`Total unique perfume links: ${allPerfumeLinks.length}`);
+
+  // Process perfume links in batches to push data regularly.
+  const batchSize = 10;
+  const resultsFile = 'perfumesData.json';
+  let allPerfumesData = [];
+
+  for (let i = 0; i < allPerfumeLinks.length; i += batchSize) {
+    const batchLinks = allPerfumeLinks.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batchLinks.map(perfumeUrl =>
+        perfumeLimit(() => scrapePerfumePage(browser, perfumeUrl))
+      )
+    );
+    allPerfumesData.push(...batchResults);
+    // Append batch to file
+    appendDataToJsonFile(resultsFile, batchResults);
+    console.log(`Flushed batch of ${batchResults.length} perfumes to JSON. Total so far: ${allPerfumesData.length}`);
+  }
+
   await browser.close();
-})();
+
+  console.log("All perfumes data count:", allPerfumesData.length);
+  console.log('Scraping complete. Data saved in perfumesData.json');
+}
+
+main().catch(error => {
+  console.error('Fatal error in main:', error);
+});
