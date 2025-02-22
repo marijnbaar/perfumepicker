@@ -1,215 +1,86 @@
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const cheerio = require("cheerio");
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const cheerio = require('cheerio');
 
-puppeteer.use(
-  StealthPlugin(),
-);
+puppeteer.use(StealthPlugin());
 
-// Replace with the actual URL if it's different
-const SEARCH_URL =
-  "https://www.fragrantica.com/search/";
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36";
+const SEARCH_URL = 'https://www.fragrantica.com/search';
 
-// Selector for the "Show more results" button
-const SHOW_MORE_SELECTOR =
-  "button.button";
+// The button we *think* we see:
+const SHOW_MORE_SELECTOR = 'button.button';
 
-// Selector for the perfume links
-const PERFUME_LINK_SELECTOR =
-  ".cell.card.fr-news-box .card-section a.link-span";
+// The link selector:
+const PERFUME_LINK_SELECTOR = '.cell.card.fr-news-box .card-section a.link-span';
 
-function cleanUrl(
-  url,
-) {
-  return url.endsWith(
-    ":",
-  )
-    ? url.slice(
-        0,
-        -1,
-      )
-    : url;
-}
+(async function main() {
+  const browser = await puppeteer.launch({
+    headless: false, // run headful so we can watch
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+  const page = await browser.newPage();
 
-async function delay(
-  ms,
-) {
-  return new Promise(
-    (resolve) =>
-      setTimeout(
-        resolve,
-        ms,
-      ),
+  await page.setUserAgent(
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
   );
-}
+  page.setDefaultNavigationTimeout(120000);
+  page.setDefaultTimeout(120000);
 
-/**
- * Repeatedly clicks the "Show more results" button if it appears,
- * then extracts perfume links from the final HTML.
- */
-async function getPerfumeLinksFromSearch(
-  page,
-) {
-  console.log(
-    `Navigating to: ${SEARCH_URL}`,
-  );
-  await page.goto(
-    SEARCH_URL,
-    {
-      waitUntil:
-        "networkidle2",
-      timeout: 120000,
-    },
-  );
+  // 1) Go to the search page
+  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2' });
+  await page.waitForTimeout(5000); // give site some extra time
 
-  // Wait up to 15s for the button to appear (in case the page is slow).
-  // If the button never appears, the script logs a message and continues.
+  // 2) Possibly close/accept cookie or region popup
+  // const consentBtn = await page.$('.cookie-consent-accept');
+  // if (consentBtn) {
+  //   await consentBtn.click();
+  //   await page.waitForTimeout(2000);
+  // }
+
+  // 3) Check if the button is present
   try {
-    await page.waitForSelector(
-      SHOW_MORE_SELECTOR,
-      {
-        timeout: 15000,
-      },
-    );
-    console.log(
-      '"Show more results" button is present, proceeding...',
-    );
+    await page.waitForSelector(SHOW_MORE_SELECTOR, { timeout: 10000 });
+    console.log('Found the "Show more results" button, proceeding...');
   } catch (err) {
-    console.log(
-      'No "Show more results" button found within 15s:',
-      err.message,
-    );
+    console.log('Did NOT find the button within 10s:', err.message);
+    await page.screenshot({ path: 'debug_no_button.png', fullPage: true });
   }
 
-  // Repeatedly click the button if it still exists in the DOM
+  // 4) Repeatedly click the button if it exists
   while (true) {
-    const loadMoreBtn =
-      await page.$(
-        SHOW_MORE_SELECTOR,
-      );
-    if (
-      !loadMoreBtn
-    ) {
-      console.log(
-        'No more "Show more results" button found. Stopping.',
-      );
+    const loadMoreBtn = await page.$(SHOW_MORE_SELECTOR);
+    if (!loadMoreBtn) {
+      console.log('No more "Show more results" button. Stopping.');
       break;
     }
 
-    console.log(
-      'Clicking "Show more results" button...',
-    );
+    console.log('Clicking "Show more results"...');
     await loadMoreBtn.click();
-
-    // Wait for new results to load. You can also use:
-    // await page.waitForNetworkIdle({ idleTime: 2000, timeout: 30000 });
-    // or wait for a specific new element. For simplicity, a fixed delay:
-    await delay(
-      3000,
-    );
+    // wait for new results or network to idle
+    await page.waitForTimeout(3000);
   }
 
-  // Now collect the final HTML
-  const html =
-    await page.content();
-  const $ =
-    cheerio.load(
-      html,
-    );
+  // 5) Dump final HTML
+  const finalHtml = await page.content();
+  // Take a screenshot to see final state
+  await page.screenshot({ path: 'final_state.png', fullPage: true });
 
-  // Extract perfume links
-  let perfumeLinks =
-    [];
-  $(
-    PERFUME_LINK_SELECTOR,
-  ).each(
-    (_, el) => {
-      let href = $(
-        el,
-      ).attr(
-        "href",
-      );
-      if (href) {
-        href =
-          cleanUrl(
-            href,
-          );
-        // Convert relative to absolute if needed
-        if (
-          !href.startsWith(
-            "http",
-          )
-        ) {
-          href =
-            new URL(
-              href,
-              SEARCH_URL,
-            ).href;
-        }
-        perfumeLinks.push(
-          href,
-        );
+  // 6) Extract perfume links
+  const $ = cheerio.load(finalHtml);
+  let perfumeLinks = [];
+  $(PERFUME_LINK_SELECTOR).each((_, el) => {
+    let href = $(el).attr('href');
+    if (href) {
+      if (href.endsWith(':')) href = href.slice(0, -1);
+      if (!href.startsWith('http')) {
+        href = new URL(href, SEARCH_URL).href;
       }
-    },
-  );
-
-  // Deduplicate
-  perfumeLinks =
-    Array.from(
-      new Set(
-        perfumeLinks,
-      ),
-    );
-  console.log(
-    `Found ${perfumeLinks.length} perfume links in total.`,
-  );
-  return perfumeLinks;
-}
-
-(async function main() {
-  const browser =
-    await puppeteer.launch(
-      {
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-        ],
-      },
-    );
-
-  const page =
-    await browser.newPage();
-  await page.setUserAgent(
-    USER_AGENT,
-  );
-  page.setDefaultNavigationTimeout(
-    120000,
-  );
-  page.setDefaultTimeout(
-    120000,
-  );
-
-  // 1) Grab all perfume links from the search page
-  const perfumeLinks =
-    await getPerfumeLinksFromSearch(
-      page,
-    );
-  console.log(
-    "Perfume Links:",
-    perfumeLinks,
-  );
-
-  // 2) Optionally, scrape each link individually
-  // for (const link of perfumeLinks) {
-  //   await scrapePerfumePage(browser, link);
-  // }
+      perfumeLinks.push(href);
+    }
+  });
+  perfumeLinks = [...new Set(perfumeLinks)];
+  console.log('Found perfume links:', perfumeLinks);
 
   await page.close();
   await browser.close();
-  console.log(
-    "Done!",
-  );
 })();
