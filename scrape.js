@@ -1,112 +1,250 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const cheerio = require('cheerio');
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const cheerio = require("cheerio");
 
-puppeteer.use(StealthPlugin());
+puppeteer.use(
+  StealthPlugin(),
+);
 
-const SEARCH_URL = 'https://www.fragrantica.com/search/';
+const SEARCH_URL =
+  "https://www.fragrantica.com/search/";
+
+// The actual "Accept" button for the cookie popup
+// Replace with the real ID, class, or text-based selector
+const COOKIE_ACCEPT_SELECTOR =
+  'button[data-testid="cookie-accept"]';
+
+// The "Show more results" button
+const SHOW_MORE_SELECTOR =
+  "button.button";
+
+// The link selector for perfumes
+const PERFUME_LINK_SELECTOR =
+  ".cell.card.fr-news-box .card-section a[href]";
+
+// Use a real user agent
 const USER_AGENT =
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-  '(KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+  "(KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36";
 
-// The "Accept" button for the cookie popup. Replace with the real selector from DevTools:
-const COOKIE_ACCEPT_SELECTOR = 'button.cc-accept'; 
-// Or something like: 'button[aria-label="Accept"]', or an XPath approach if there's no good CSS
-
-const SHOW_MORE_SELECTOR = 'button.button';
-const PERFUME_LINK_SELECTOR = '.cell.card.fr-news-box .card-section a[href]';
-
-function cleanUrl(url) {
-  return url.endsWith(':') ? url.slice(0, -1) : url;
+function cleanUrl(
+  url,
+) {
+  return url.endsWith(
+    ":",
+  )
+    ? url.slice(
+        0,
+        -1,
+      )
+    : url;
 }
 
-async function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+async function delay(
+  ms,
+) {
+  return new Promise(
+    (resolve) =>
+      setTimeout(
+        resolve,
+        ms,
+      ),
+  );
 }
 
-async function handleCookiePopup(page) {
+// Attempt to close cookie popup
+async function handleCookiePopup(
+  page,
+) {
   try {
-    // Wait up to 10s for the popup's "Accept" button
-    await page.waitForSelector(COOKIE_ACCEPT_SELECTOR, { timeout: 10000 });
-    console.log('Cookie popup found, clicking Accept...');
-    await page.click(COOKIE_ACCEPT_SELECTOR);
-    // Give it a moment to close
-    await delay(2000);
+    await page.waitForSelector(
+      COOKIE_ACCEPT_SELECTOR,
+      {
+        timeout: 10000,
+      },
+    );
+    console.log(
+      "Cookie popup found, clicking Accept...",
+    );
+    await page.click(
+      COOKIE_ACCEPT_SELECTOR,
+    );
+    await delay(
+      2000,
+    ); // let it disappear
   } catch (err) {
-    console.log('No cookie popup found within 10s or could not click Accept:', err.message);
+    console.log(
+      "No cookie popup or could not click accept:",
+      err.message,
+    );
   }
 }
 
-async function getPerfumeLinksFromSearch(page) {
-  console.log(`Navigating to: ${SEARCH_URL}`);
-  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 120000 });
+async function getPerfumeLinksFromSearch(
+  page,
+) {
+  console.log(
+    `Navigating to: ${SEARCH_URL}`,
+  );
+  await page.goto(
+    SEARCH_URL,
+    {
+      waitUntil:
+        "networkidle2",
+      timeout: 120000,
+    },
+  );
 
-  // 1) Handle the cookie popup
-  await handleCookiePopup(page);
+  // 1) Accept cookie popup
+  await handleCookiePopup(
+    page,
+  );
 
-  // 2) Wait up to 15s for "Show more results" button (if it appears)
+  // 2) Wait for "Show more results" button if it appears
   try {
-    await page.waitForSelector(SHOW_MORE_SELECTOR, { timeout: 15000 });
-    console.log('"Show more results" button is present, proceeding...');
+    await page.waitForSelector(
+      SHOW_MORE_SELECTOR,
+      {
+        timeout: 15000,
+      },
+    );
+    console.log(
+      '"Show more results" button is present, proceeding...',
+    );
   } catch (err) {
-    console.log('No "Show more results" button found within 15s:', err.message);
+    console.log(
+      'No "Show more results" button found within 15s:',
+      err.message,
+    );
   }
 
-  // 3) Repeatedly click "Show more results" if found
+  // 3) Repeatedly click the button if it exists
   while (true) {
-    const loadMoreBtn = await page.$(SHOW_MORE_SELECTOR);
-    if (!loadMoreBtn) {
-      console.log('No more "Show more results" button. Stopping.');
+    const loadMoreBtn =
+      await page.$(
+        SHOW_MORE_SELECTOR,
+      );
+    if (
+      !loadMoreBtn
+    ) {
+      console.log(
+        'No more "Show more results" button. Stopping.',
+      );
       break;
     }
-    console.log('Clicking "Show more results" button...');
+
+    console.log(
+      'Clicking "Show more results" button...',
+    );
+    // Scroll it into view if needed
+    await loadMoreBtn.evaluate(
+      (btn) =>
+        btn.scrollIntoView(),
+    );
     await loadMoreBtn.click();
-    await delay(3000); // Wait for new items to load
+
+    // Wait for new items to load
+    await delay(
+      3000,
+    );
   }
 
   // 4) Extract final HTML
-  const html = await page.content();
-  const $ = cheerio.load(html);
+  const html =
+    await page.content();
+  const $ =
+    cheerio.load(
+      html,
+    );
 
   // 5) Extract perfume links
-  let perfumeLinks = [];
-  $(PERFUME_LINK_SELECTOR).each((_, el) => {
-    let href = $(el).attr('href');
-    if (href) {
-      href = cleanUrl(href);
-      if (!href.startsWith('http')) {
-        href = new URL(href, SEARCH_URL).href;
+  let perfumeLinks =
+    [];
+  $(
+    PERFUME_LINK_SELECTOR,
+  ).each(
+    (_, el) => {
+      let href = $(
+        el,
+      ).attr(
+        "href",
+      );
+      if (href) {
+        href =
+          cleanUrl(
+            href,
+          );
+        if (
+          !href.startsWith(
+            "http",
+          )
+        ) {
+          href =
+            new URL(
+              href,
+              SEARCH_URL,
+            ).href;
+        }
+        perfumeLinks.push(
+          href,
+        );
       }
-      perfumeLinks.push(href);
-    }
-  });
+    },
+  );
 
   // Deduplicate
-  perfumeLinks = [...new Set(perfumeLinks)];
-  console.log(`Found ${perfumeLinks.length} perfume links in total.`);
+  perfumeLinks = [
+    ...new Set(
+      perfumeLinks,
+    ),
+  ];
+  console.log(
+    `Found ${perfumeLinks.length} perfume links in total.`,
+  );
   return perfumeLinks;
 }
 
 (async function main() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const page = await browser.newPage();
-  await page.setUserAgent(USER_AGENT);
-  page.setDefaultNavigationTimeout(120000);
-  page.setDefaultTimeout(120000);
+  const browser =
+    await puppeteer.launch(
+      {
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+        ],
+      },
+    );
 
-  // Grab all perfume links
-  const perfumeLinks = await getPerfumeLinksFromSearch(page);
-  console.log('Perfume Links:', perfumeLinks);
+  const page =
+    await browser.newPage();
+  await page.setUserAgent(
+    USER_AGENT,
+  );
+  page.setDefaultNavigationTimeout(
+    120000,
+  );
+  page.setDefaultTimeout(
+    120000,
+  );
 
-  // Optionally scrape each link in perfumeLinks...
+  const perfumeLinks =
+    await getPerfumeLinksFromSearch(
+      page,
+    );
+  console.log(
+    "Perfume Links:",
+    perfumeLinks,
+  );
+
+  // You could scrape each link here
   // for (const link of perfumeLinks) {
   //   await scrapePerfumePage(browser, link);
   // }
 
   await page.close();
   await browser.close();
-  console.log('Done!');
+  console.log(
+    "Done!",
+  );
 })();
